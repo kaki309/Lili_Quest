@@ -4,10 +4,18 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// SCRIPT DE TESTING - Simula una placa Arduino
+/// SCRIPT DE TESTING - Simula una placa Arduino con ciclo de vida realista
 /// 
 /// Propósito: Emular el comportamiento de Arduino enviando mensajes por puerto COM5
 /// para verificar que ConectorArduino funciona correctamente.
+/// 
+/// Ciclo de vida realista:
+/// 1. Handshake inicial
+/// 2. Modo RFID_ONLY durante 10 segundos (solo envía RFID)
+/// 3. Solicita cambio a modo FULL_SENSORS (joystick, potenciómetro, botón)
+/// 4. Modo FULL_SENSORS durante 15 segundos (envía todos los sensores)
+/// 5. Solicita cambio de vuelta a RFID_ONLY
+/// 6. Loop infinito
 /// 
 /// Requisitos:
 /// - COM5 debe estar configurado como puerto serial virtual (pair virtual)
@@ -16,6 +24,16 @@ using UnityEngine;
 /// Observar en la consola de Unity los logs de [ConectorArduino] para verificar
 /// que la conexión, handshake y lectura de datos funciona correctamente.
 /// </summary>
+
+/// <summary>
+/// Enum para los modos de simulación del Arduino
+/// </summary>
+public enum SimulatorMode
+{
+    RFID_ONLY,      // Solo envía RFID (primeros 10 segundos)
+    FULL_SENSORS    // Envía RFID + joystick + potenciómetro + botón
+}
+
 public class ArduinoSimulator : MonoBehaviour
 {
     [Header("Configuración del Puerto")]
@@ -27,9 +45,25 @@ public class ArduinoSimulator : MonoBehaviour
     [SerializeField] private float delayBeforeSendingIdentification = 1f;
     [SerializeField] private float delayAfterHandshake = 2f;
 
+    [Header("Ciclo de Vida - Transiciones de Modo")]
+    [SerializeField] private float timeBeforeRequestingFullSensors = 10f;   // Segundos en RFID_ONLY antes de cambiar a FULL_SENSORS
+    [SerializeField] private float timeInFullSensorsMode = 15f;            // Segundos en FULL_SENSORS antes de volver a RFID_ONLY
+
     [Header("Envío de Datos")]
     [SerializeField] private float sendDataInterval = 0.5f;
     private float timeSinceLastSend = 0f;
+    private float timeSinceHandshake = 0f;
+
+    [Header("Datos leidos desde ConectorArduino")]
+    [SerializeField] private ArduinoState estadoActual = ArduinoState.Inicializando;
+    [SerializeField] private bool estaConectado = false;
+    [SerializeField] private string rfidLeido = "";
+    [SerializeField] private string joystickLeido = "";
+    [SerializeField] private string potLeido = "";
+    [SerializeField] private string botonLeido = "";
+    
+    [Header("Modo Actual del Simulador")]
+    [SerializeField] private SimulatorMode modoActual = SimulatorMode.RFID_ONLY;
 
     private SerialPort serialPort;
     private bool isConnected = false;
@@ -43,18 +77,83 @@ public class ArduinoSimulator : MonoBehaviour
 
     private void Update()
     {
-        // Enviar datos periódicamente si ya completamos handshake
+        // ========== CAPTURAR DATOS DE ConectorArduino ==========
+        if (ConectorArduino.Instance != null)
+        {
+            estadoActual = ConectorArduino.Instance.CurrentState;
+            estaConectado = ConectorArduino.Instance.IsConnected;
+            
+            SensorData datos = ConectorArduino.Instance.GetSensorData();
+            if (datos != null)
+            {
+                rfidLeido = datos.RFID ?? "";
+                joystickLeido = datos.JOYSTICK?.ToString() ?? "";
+                potLeido = datos.POT ?? "";
+                botonLeido = datos.BUTTON ?? "";
+            }
+        }
+
+        // ========== CICLO DE VIDA CON TRANSICIONES AUTOMÁTICAS ==========
         if (handshakeDone && isConnected)
         {
+            // Incrementar contador de tiempo desde handshake
+            timeSinceHandshake += Time.deltaTime;
+
+            // Lógica de transiciones de estado
+            if (modoActual == SimulatorMode.RFID_ONLY)
+            {
+                // En modo RFID_ONLY, esperar timeBeforeRequestingFullSensors segundos
+                if (timeSinceHandshake >= timeBeforeRequestingFullSensors)
+                {
+                    Debug.Log($"[ArduinoSimulator] ⏱️ {timeBeforeRequestingFullSensors} segundos transcurridos en RFID_ONLY. Solicitando cambio a FULL_SENSORS...");
+                    
+                    // Solicitar al ConectorArduino que cambie a modo de lectura de datos
+                    if (ConectorArduino.Instance != null)
+                    {
+                        ConectorArduino.Instance.RequestState(ArduinoState.LeyendoDatos);
+                        modoActual = SimulatorMode.FULL_SENSORS;
+                        timeSinceHandshake = 0f;  // Resetear contador para la nueva fase
+                        Debug.Log("[ArduinoSimulator] 🔄 Cambio de modo a FULL_SENSORS");
+                    }
+                }
+            }
+            else if (modoActual == SimulatorMode.FULL_SENSORS)
+            {
+                // En modo FULL_SENSORS, esperar timeInFullSensorsMode segundos
+                if (timeSinceHandshake >= timeInFullSensorsMode)
+                {
+                    Debug.Log($"[ArduinoSimulator] ⏱️ {timeInFullSensorsMode} segundos transcurridos en FULL_SENSORS. Solicitando cambio a RFID_ONLY...");
+                    
+                    // Solicitar al ConectorArduino que cambie a modo de espera RFID
+                    if (ConectorArduino.Instance != null)
+                    {
+                        ConectorArduino.Instance.RequestState(ArduinoState.EsperandoRFID);
+                        modoActual = SimulatorMode.RFID_ONLY;
+                        timeSinceHandshake = 0f;  // Resetear contador para la nueva fase
+                        Debug.Log("[ArduinoSimulator] 🔄 Cambio de modo a RFID_ONLY");
+                    }
+                }
+            }
+
+            // ========== ENVÍO DE DATOS PERIÓDICOS ==========
             timeSinceLastSend += Time.deltaTime;
             if (timeSinceLastSend >= sendDataInterval)
             {
-                SendSensorData();
+                // Enviar datos según el modo actual
+                if (modoActual == SimulatorMode.RFID_ONLY)
+                {
+                    SendRFIDOnly();
+                }
+                else if (modoActual == SimulatorMode.FULL_SENSORS)
+                {
+                    SendFullSensorData();
+                }
+                
                 timeSinceLastSend = 0f;
             }
         }
 
-        // Monitorear respuestas de Unity
+        // ========== MONITOREAR RESPUESTAS DE UNITY ==========
         if (isConnected && serialPort.BytesToRead > 0)
         {
             try
@@ -62,15 +161,14 @@ public class ArduinoSimulator : MonoBehaviour
                 string line = serialPort.ReadLine().Trim();
                 Debug.Log($"[ArduinoSimulator] 📩 Recibido desde Unity: \"{line}\"");
 
-                // Responder a comandos de Unity
+                // Responder a comandos
                 if (line == "enviar rfid")
                 {
-                    Debug.Log("[ArduinoSimulator] → Comando recibido: ENVIAR RFID. Esperando lectura de etiqueta...");
-                    // En modo RFID, solo enviamos el valor de RFID (opcional para test)
+                    Debug.Log("[ArduinoSimulator] → Comando recibido: ENVIAR RFID");
                 }
                 else if (line == "enviar datos de control")
                 {
-                    Debug.Log("[ArduinoSimulator] → Comando recibido: ENVIAR DATOS. Comenzando envío de sensores...");
+                    Debug.Log("[ArduinoSimulator] → Comando recibido: ENVIAR DATOS CONTROL");
                 }
             }
             catch (Exception ex)
@@ -153,13 +251,40 @@ public class ArduinoSimulator : MonoBehaviour
         }
     }
 
-    private void SendSensorData()
+    /// <summary>
+    /// Envía solo el RFID sin datos de sensores (modo RFID_ONLY)
+    /// </summary>
+    private void SendRFIDOnly()
     {
         if (!isConnected) return;
 
         try
         {
-            // Generar datos de sensores simulados
+            // En modo RFID_ONLY, solo envía RFID
+            string rfid = "TAG_001";
+            string json = $"{{\"RFID\":\"{rfid}\",\"JOYSTICK\":\"0-0\",\"POT\":\"0\",\"BUTTON\":\"S\"}}";
+
+            serialPort.WriteLine(json);
+            serialPort.BaseStream.Flush();
+
+            Debug.Log($"[ArduinoSimulator] 📤 [RFID_ONLY] {json}");
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"[ArduinoSimulator] ❌ Error al enviar RFID: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Envía todos los datos de sensores (modo FULL_SENSORS)
+    /// </summary>
+    private void SendFullSensorData()
+    {
+        if (!isConnected) return;
+
+        try
+        {
+            // En modo FULL_SENSORS, envía RFID + joystick + potenciómetro + botón con valores aleatorios
             string rfid = "TAG_001";
             int joystickX = UnityEngine.Random.Range(0, 255);
             int joystickY = UnityEngine.Random.Range(0, 255);
@@ -172,11 +297,11 @@ public class ArduinoSimulator : MonoBehaviour
             serialPort.WriteLine(json);
             serialPort.BaseStream.Flush();
 
-            Debug.Log($"[ArduinoSimulator] 📤 Enviado JSON: {json}");
+            Debug.Log($"[ArduinoSimulator] 📤 [FULL_SENSORS] {json}");
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[ArduinoSimulator] ❌ Error al enviar datos: {ex.Message}");
+            Debug.LogError($"[ArduinoSimulator] ❌ Error al enviar datos de sensores: {ex.Message}");
         }
     }
 
@@ -202,6 +327,9 @@ public class ArduinoSimulator : MonoBehaviour
     public void ResetSimulation()
     {
         handshakeDone = false;
+        modoActual = SimulatorMode.RFID_ONLY;
+        timeSinceHandshake = 0f;
+        timeSinceLastSend = 0f;
         Debug.Log("[ArduinoSimulator] 🔄 Simulación reseteada. Esperando nuevo handshake...");
     }
 
