@@ -82,7 +82,7 @@ public class ConectorArduino : MonoBehaviour
 
     [Header("Serial Settings")]
     public int baudRate = 9600;
-    public float scanInterval = 2f;
+    public float scanInterval = 3f;
 
     // ---- ESTADO ----
     private ArduinoState currentState = ArduinoState.Inicializando;
@@ -98,9 +98,10 @@ public class ConectorArduino : MonoBehaviour
     public bool isSearching { get; private set; } = false;
 
     // ---- MENSAJES DE PROTOCOLO (Arduino esperando estos literales) ----
-    private const string IDENTIFICATION_MSG = "Museo Digital";      // Arduino envía al inicializar
-    private const string RESPONSE_MSG = "Te encontre";             // Respuesta de Unity
-    private const string RESET_CONNECTION_MSG = "Reset Connection"; // Comando para volver a esperanza RFID
+    private const string IDENTIFICATION_MSG = "soy controles lili quest";      // Arduino envía al inicializar
+    private const string RESPONSE_MSG = "te encontre";             // Respuesta que se envía al arduino
+    private const string RESET_CONNECTION_MSG = "enviar rfid"; // Comando para volver a esperanza RFID
+    private const string START_SENDING_DATA_MSG = "enviar datos de control"; // Comando para solicitar envío de datos de interacción
 
     private void Awake()
     {
@@ -158,12 +159,12 @@ public class ConectorArduino : MonoBehaviour
     /// </summary>
     private IEnumerator SearchAndConnectArduino()
     {
-        Debug.Log("[Arduino] Buscando puerto...");
+        Debug.Log("[ConectorArduino] Buscando puerto...");
 
         string[] ports = SerialPort.GetPortNames();
         foreach (string port in ports)
         {
-            Debug.Log($"[Arduino] Probando puerto: {port}");
+            Debug.Log($"[ConectorArduino] Probando puerto: {port}");
 
             SerialPort testPort = new SerialPort(port, baudRate);
             testPort.ReadTimeout = 500;
@@ -193,7 +194,7 @@ public class ConectorArduino : MonoBehaviour
                         string line = testPort.ReadLine().Trim();
                         if (line == IDENTIFICATION_MSG)
                         {
-                            Debug.Log($"[Arduino] ✓ Encontrado en {port}");
+                            Debug.Log($"[ConectorArduino] Encontrado en {port}");
                             found = true;
 
                             // Handshake: confirmar conexión
@@ -222,7 +223,7 @@ public class ConectorArduino : MonoBehaviour
             }
         }
 
-        Debug.LogWarning("[Arduino] No encontrado. Reintentando...");
+        Debug.LogWarning("[ConectorArduino] No encontrado. Reintentando...");
     }
 
     // ============================================================
@@ -235,7 +236,7 @@ public class ConectorArduino : MonoBehaviour
     /// </summary>
     private IEnumerator ReadDataLoop()
     {
-        Debug.Log("[Arduino] Iniciando lectura de datos...");
+        Debug.Log("[ConectorArduino] Iniciando lectura de datos...");
 
         while (IsConnected)
         {
@@ -249,7 +250,7 @@ public class ConectorArduino : MonoBehaviour
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"[Arduino] Error de lectura: {ex.Message}");
+                Debug.LogWarning($"[ConectorArduino] Error de lectura: {ex.Message}");
                 TryCloseSerial();
                 yield break;
             }
@@ -282,7 +283,7 @@ public class ConectorArduino : MonoBehaviour
         }
         catch
         {
-            Debug.LogWarning($"[Arduino] Paquete JSON inválido: {rawLine}");
+            Debug.LogWarning($"[ConectorArduino] Paquete JSON inválido: {rawLine}");
         }
     }
 
@@ -301,18 +302,18 @@ public class ConectorArduino : MonoBehaviour
     {
         if (newState == currentState)
         {
-            Debug.LogWarning($"[Arduino] Ya en estado {currentState}");
+            Debug.LogWarning($"[ConectorArduino] Ya en estado {currentState}");
             return;
         }
 
         if (!IsConnected)
         {
-            Debug.LogError("[Arduino] No hay conexión. No se puede cambiar estado.");
+            Debug.LogError("[ConectorArduino] No hay conexión. No se puede cambiar estado.");
             return;
         }
 
         currentState = newState;
-        Debug.Log($"[Arduino] Cambiando a estado: {currentState}");
+        Debug.Log($"[ConectorArduino] Cambiando a estado: {currentState}");
 
         // Enviar comando a Arduino según el nuevo estado
         switch (newState)
@@ -323,12 +324,12 @@ public class ConectorArduino : MonoBehaviour
                 break;
 
             case ArduinoState.LeyendoDatos:
-                // Cambiar a lectura de sensores (otros comandos según necesite el hardware)
-                SendCommandToArduino("Start Reading");
+                // Cambiar a lectura de sensores
+                SendCommandToArduino(START_SENDING_DATA_MSG);
                 break;
 
             case ArduinoState.Inicializando:
-                Debug.LogWarning("[Arduino] No se puede solicitar Inicializando manualmente");
+                Debug.LogWarning("[ConectorArduino] No se puede solicitar Inicializando manualmente");
                 break;
         }
     }
@@ -345,7 +346,7 @@ public class ConectorArduino : MonoBehaviour
     {
         if (!IsConnected)
         {
-            Debug.LogError("[Arduino] Intento de envío sin conexión");
+            Debug.LogError("[ConectorArduino] Intento de envío sin conexión");
             return;
         }
 
@@ -353,11 +354,11 @@ public class ConectorArduino : MonoBehaviour
         {
             serial.WriteLine(command);
             serial.BaseStream.Flush();
-            Debug.Log($"[Arduino] Comando enviado: {command}");
+            Debug.Log($"[ConectorArduino] Comando enviado: {command}");
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[Arduino] Error al enviar comando: {ex.Message}");
+            Debug.LogError($"[ConectorArduino] Error al enviar comando: {ex.Message}");
         }
     }
 
@@ -380,7 +381,7 @@ public class ConectorArduino : MonoBehaviour
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"[Arduino] Error al cerrar puerto: {ex.Message}");
+                Debug.LogWarning($"[ConectorArduino] Error al cerrar puerto: {ex.Message}");
             }
             finally
             {
