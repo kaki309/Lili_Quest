@@ -16,7 +16,7 @@
 ✅ **Datos tipados** — IntelliSense automático en el IDE  
 ✅ **API segura** — Acceso protegido a datos internos  
 ✅ **Reconexión automática** — Si Arduino se desconecta, reintenta continuamente  
-✅ **Parseado automático** — El Joystick "120-95" se convierte en X="120", Y="95"
+✅ **Parseado automático** — El Joystick "120-95" se convierte en X=120, Y=95 (valores numéricos)
 
 ---
 
@@ -61,38 +61,42 @@ public class SensorData
 ```csharp
 SensorData datos = ConectorArduino.Instance.GetSensorData();
 Debug.Log($"RFID: {datos.RFID}");
-Debug.Log($"Joystick X: {datos.JOYSTICK.X}, Y: {datos.JOYSTICK.Y}");
+Debug.Log($"Joystick X: {datos.JOYSTICK.X}, Y: {datos.JOYSTICK.Y}");  // X e Y ya son int
 Debug.Log($"Potenciómetro: {datos.POT}");
 Debug.Log($"Botón: {datos.BUTTON}");
+
+// Comparaciones numéricas directas sin necesidad de conversión
+if (datos.JOYSTICK.X > 200)
+{
+    Debug.Log("Joystick desplazado a la derecha");
+}
+
+int joystickMagnitud = (int)Mathf.Sqrt(datos.JOYSTICK.X * datos.JOYSTICK.X + datos.JOYSTICK.Y * datos.JOYSTICK.Y);
 ```
 
 ---
 
 ### JoystickData
 
-Estructura que parseamautomáticamente el dato del joystick que llega desde Arduino en formato `"x-y"`.
+Estructura que parsamaticamente el dato del joystick que llega desde Arduino en formato `"x-y"` a valores numéricos.
 
 ```csharp
 public class JoystickData
 {
-    public string X;  // Coordenada X (parseada automáticamente)
-    public string Y;  // Coordenada Y (parseada automáticamente)
+    public int X;  // Coordenada X (parseada automáticamente a entero)
+    public int Y;  // Coordenada Y (parseada automáticamente a entero)
     
-    // Constructor interno - convierte "120-95" en X="120", Y="95"
+    // Constructor interno - convierte "120-95" en X=120, Y=95
     public JoystickData(string raw)
     {
         string[] parts = raw.Split('-');
-        X = parts.Length > 0 ? parts[0] : "0";
-        Y = parts.Length > 1 ? parts[1] : "0";
+        X = int.TryParse(parts.Length > 0 ? parts[0] : "0", out int parsedX) ? parsedX : 0;
+        Y = int.TryParse(parts.Length > 1 ? parts[1] : "0", out int parsedY) ? parsedY : 0;
     }
 }
 ```
 
-**Nota:** Los valores se mantienen como `string` para máxima compatibilidad. Si necesitas números, convierte manualmente:
-```csharp
-float xValue = float.Parse(datos.JOYSTICK.X);
-float yValue = float.Parse(datos.JOYSTICK.Y);
-```
+**Nota:** Los valores X e Y se convierten automáticamente a enteros (`int`). No necesitas hacer parsing manual en otros scripts — puedes usar directamente los valores numéricos.
 
 ---
 

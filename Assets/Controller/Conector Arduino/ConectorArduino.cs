@@ -23,14 +23,14 @@ public enum ArduinoState
 [Serializable]
 public class JoystickData
 {
-    public string X;
-    public string Y;
+    public int X;
+    public int Y;
 
     public JoystickData(string raw)
     {
         string[] parts = raw.Split('-');
-        X = parts.Length > 0 ? parts[0] : "0";
-        Y = parts.Length > 1 ? parts[1] : "0";
+        X = int.TryParse(parts.Length > 0 ? parts[0] : "0", out int parsedX) ? parsedX : 0;
+        Y = int.TryParse(parts.Length > 1 ? parts[1] : "0", out int parsedY) ? parsedY : 0;
     }
 
     public override string ToString() => $"({X}, {Y})";
