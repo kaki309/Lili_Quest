@@ -132,7 +132,7 @@ GameObject:
   m_Component:
   - component: {fileID: 191863805}
   m_Layer: 0
-  m_Name: ' Placeholder Modelo'
+  m_Name: PlaceholderModelo3D
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -147,7 +147,7 @@ Transform:
   m_GameObject: {fileID: 191863804}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 3.32, y: 0.67, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -188,7 +188,7 @@ Camera:
   m_GameObject: {fileID: 269275293}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 2
+  m_ClearFlags: 1
   m_BackGroundColor: {r: 0.2981131, g: 0.2981131, b: 0.2981131, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2

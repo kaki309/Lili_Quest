@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using GLTFast;
+using GLTFast.Loading;
 
 // ============================================================
 // ENUM Y TIPOS DE DATOS
@@ -172,7 +174,23 @@ public class ControladorFlujo : MonoBehaviour
     private void InitializeEsperandoInicioExperiencia()
     {
         Debug.Log("[ControladorFlujo] Inicializando estado: EsperandoInicioExperiencia");
-        GameObject.Find("placeholder modelo3D");
+        GameObject placeholder = GameObject.Find("PlaceholderModelo3D");
+
+        if (placeholder == null)
+        {
+            Debug.LogError("[ControladorFlujo] No se encontró: Placeholder Modelo3D");
+            return;
+        }
+
+        // Cargar el modelo 3D desde la ruta externa de forma asincrónica
+        if (currentExperienceData != null && !string.IsNullOrEmpty(currentExperienceData.modeloPath))
+        {
+            LoadModelAsync(placeholder, currentExperienceData.modeloPath);
+        }
+        else
+        {
+            Debug.LogError("[ControladorFlujo] No hay datos de experiencia o ruta del modelo vacía");
+        }
     }
 
     private void UpdateEsperandoInicioExperiencia()
@@ -302,6 +320,9 @@ public class ControladorFlujo : MonoBehaviour
         // Salir del estado actual
         switch (currentState)
         {
+            case ControllerState.EsperandoInicioExperiencia:
+                ExitEsperandoInicioExperiencia();
+                break;
             case ControllerState.InteraccionRuptura:
                 ExitInteraccionRuptura();
                 break;
@@ -334,5 +355,28 @@ public class ControladorFlujo : MonoBehaviour
     private bool IsArduinoReady()
     {
         return ConectorArduino.Instance != null && ConectorArduino.Instance.IsConnected;
+    }
+
+    /// <summary>
+    /// Carga un modelo glTF/glB desde una ruta externa dentro de un placeholder específico.
+    /// </summary>
+    private async void LoadModelAsync(GameObject placeholder, string modelPath)
+    {
+        Debug.Log($"[ControladorFlujo] Cargando modelo: {modelPath}");
+
+        var gltf = new GltfImport();
+        GameObject container = new GameObject("Modelo3D");
+        container.transform.SetParent(placeholder.transform, false);
+
+        if (await gltf.Load(new Uri(modelPath)))
+        {
+            await gltf.InstantiateMainSceneAsync(container.transform);
+            Debug.Log("[ControladorFlujo] Modelo instanciado correctamente");
+        }
+        else
+        {
+            Destroy(container);
+            Debug.LogError($"[ControladorFlujo] Fallo al cargar: {modelPath}");
+        }
     }
 }
