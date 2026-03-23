@@ -5,42 +5,23 @@ using System.Collections.Generic;
 /// Utilizada como retorno ÚNICO de la API pública GetExperienceData().
 /// 
 /// Contiene toda la información necesaria para usar una experiencia:
-/// - Rutas COMPLETAS (no relativas) para modelo, secuencia, imágenes y audios
-/// - Se puede usar directamente sin necesidad de llamadas adicionales
+/// - Entrega rutas COMPLETAS para cada material
 /// 
 /// Ejemplo de uso:
 ///   var data = ControladorDatos.Instance.GetExperienceData(id);
-///   File.ReadAllText(data.modeloPath);              // Ruta completa
 ///   File.ReadAllText(data.secuenciaPath);           // Ruta completa
 ///   Texture2D.LoadImage(data.imagenes["logo"]);     // Rutas completas en diccionario
 /// </summary>
 public class ParsedExperienceData
 {
-    /// <summary>
-    /// Ruta COMPLETA al archivo del modelo 3D (ej: C:\\Ruta\\ExperienciasMuseo\\exp1\\miModelo.fbx)
-    /// </summary>
     public string modeloPath;
 
-    /// <summary>
-    /// Ruta COMPLETA al archivo de secuencia de instrucciones (ej: C:\\Ruta\\ExperienciasMuseo\\exp1\\secuencia.txt)
-    /// </summary>
     public string secuenciaPath;
 
-    /// <summary>
-    /// Diccionario de imágenes con rutas COMPLETAS: nombre -> ruta completa
-    /// Ejemplo: imagenes["logo"] = C:\\Ruta\\ExperienciasMuseo\\exp1\\imagenes\\logo.png
-    /// </summary>
     public Dictionary<string, string> imagenes;
 
-    /// <summary>
-    /// Diccionario de audios con rutas COMPLETAS: nombre -> ruta completa
-    /// Ejemplo: audios["bienvenida"] = C:\\Ruta\\ExperienciasMuseo\\exp1\\audios\\bienvenida.mp3
-    /// </summary>
     public Dictionary<string, string> audios;
 
-    /// <summary>
-    /// Constructor que inicializa los diccionarios vacíos
-    /// </summary>
     public ParsedExperienceData()
     {
         modeloPath = "";

@@ -42,6 +42,126 @@ public class ControladorDatos : MonoBehaviour
         Initialize();
     }
 
+#if UNITY_EDITOR
+    // ========================================================================
+    // DEBUG GUI (Solo en Editor)
+    // ========================================================================
+
+    private Vector2 _debugScrollPosition = Vector2.zero;
+    private Dictionary<string, bool> _expandedExperiences = new Dictionary<string, bool>();
+
+    private void OnGUI()
+    {
+        DrawDebugPanel();
+    }
+
+    private void DrawDebugPanel()
+    {
+        GUILayout.BeginArea(new Rect(10, 10, 400, 600), "Experiencias Cargadas", GUI.skin.window);
+
+        GUILayout.Label($"Total: {_database?.Count ?? 0}");
+        GUILayout.Label($"Ruta Externa: {_externalDataPath}", GUI.skin.label);
+        GUILayout.Label($"Ruta StreamingAssets: {_streamingAssetsPath}", GUI.skin.label);
+
+        GUILayout.Space(10);
+
+        if (_database == null || _database.Count == 0)
+        {
+            GUILayout.Box("Sin experiencias cargadas");
+        }
+        else
+        {
+            _debugScrollPosition = GUILayout.BeginScrollView(_debugScrollPosition, GUILayout.Height(500));
+
+            foreach (var kvp in _database)
+            {
+                string id = kvp.Key;
+                ExperienceData data = kvp.Value;
+
+                DrawExperienceItem(id, data);
+            }
+
+            GUILayout.EndScrollView();
+        }
+
+        GUILayout.Space(10);
+        if (GUILayout.Button("Recargar Base de Datos", GUILayout.Height(25)))
+        {
+            Initialize();
+            Debug.Log("[ControladorDatos Debug] Base de datos recargada");
+        }
+
+        GUILayout.EndArea();
+    }
+
+    private void DrawExperienceItem(string id, ExperienceData data)
+    {
+        if (!_expandedExperiences.ContainsKey(id))
+        {
+            _expandedExperiences[id] = false;
+        }
+
+        GUILayout.BeginVertical(GUI.skin.box);
+
+        // Botón para expandir/contraer
+        if (GUILayout.Button((_expandedExperiences[id] ? "▼ " : "► ") + id, GUI.skin.button))
+        {
+            _expandedExperiences[id] = !_expandedExperiences[id];
+        }
+
+        if (_expandedExperiences[id])
+        {
+            GUILayout.Space(5);
+
+            // Información básica
+            GUILayout.Label($"📄 Modelo: {data.modelo}");
+            GUILayout.Label($"📝 Secuencia: {data.secuencia}");
+
+            // Imágenes
+            GUILayout.Label($"🖼️  Imágenes ({data.imagenes.Length}):");
+            if (data.imagenes.Length > 0)
+            {
+                GUILayout.BeginVertical(GUI.skin.box);
+                foreach (var img in data.imagenes)
+                {
+                    GUILayout.Label($"  • {img.key}: {img.value}");
+                }
+                GUILayout.EndVertical();
+            }
+            else
+            {
+                GUILayout.Label("  (ninguna)");
+            }
+
+            // Audios
+            GUILayout.Label($"🔊 Audios ({data.audios.Length}):");
+            if (data.audios.Length > 0)
+            {
+                GUILayout.BeginVertical(GUI.skin.box);
+                foreach (var audio in data.audios)
+                {
+                    GUILayout.Label($"  • {audio.key}: {audio.value}");
+                }
+                GUILayout.EndVertical();
+            }
+            else
+            {
+                GUILayout.Label("  (ninguno)");
+            }
+
+            // Ruta completa
+            GUILayout.Space(5);
+            string experiencePath = Path.Combine(_externalDataPath, id);
+            GUILayout.Label($"Ruta: {experiencePath}");
+            GUILayout.Label($"Existe: {(Directory.Exists(experiencePath) ? "✓ SÍ" : "✗ NO")}");
+        }
+
+        GUILayout.EndVertical();
+        GUILayout.Space(5);
+    }
+
+#endif
+
     // ========================================================================
     // INICIALIZACIÓN
     // ========================================================================

@@ -1,8 +1,20 @@
 {
   "silbato_forma_perro_cultura_quimbaya": {
-    "modelo": "miModelo.fbx",
-    "secuencia": "secuencia.txt",
-    "imagenes": {},
-    "audios": {}
+    "modelo": "SilbatoPerroQuimbayaModelo.glb",
+    "secuencia": "archivoSecuencia.txt",
+    "imagenes": [
+      {"key": "ceramica", "value": "imagenes/ceramica.jpg"},
+      {"key": "contexto_quimbaya", "value": "imagenes/contexto_quimbaya.jpg"},
+      {"key": "orfebreria", "value": "imagenes/orfebreria.jpg"},
+      {"key": "silbato_perro_quimbaya", "value": "imagenes/silbato_perro_quimbaya.png"}
+    ],
+    "audios": [
+      {"key": "Bienvenida", "value": "audios/Bienvenida.wav"},
+      {"key": "conclusion_reflexiva", "value": "audios/conclusion_reflexiva.wav"},
+      {"key": "contexto_quimbaya", "value": "audios/contexto_quimbaya.wav"},
+      {"key": "descripcion_pieza", "value": "audios/descripcion_pieza.wav"},
+      {"key": "intro_silbato", "value": "audios/intro_silbato.wav"},
+      {"key": "uso_silbato", "value": "audios/uso_silbato.wav"}
+    ]
   }
 }
