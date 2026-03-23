@@ -10,7 +10,8 @@ public class TestControladorDatos : MonoBehaviour
     private void Start()
     {
         Debug.Log("[TEST] ========== INICIANDO PRUEBAS DE ControladorDatos ==========");
-        
+        Debug.Log(" Las siguientes pruebas se harán sobre la experiencia base (Silbato en forma de perro) ");
+
         var controller = ControladorDatos.Instance;
         
         if (controller == null)
