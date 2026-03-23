@@ -50,7 +50,7 @@ public class ControladorFlujo : MonoBehaviour
     public event Action<string> OnValidationFailed;
 
     // ---- CONFIGURACIÓN ----
-    private const string VALID_RFID_ID = "001";
+    [SerializeField] private string VALID_RFID_ID = "001";
 
     // ---- VARIABLES INTERNAS ----
     private string lastRFIDRead = "";  // Para detectar cambios en RFID
