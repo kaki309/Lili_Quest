@@ -33,27 +33,12 @@ public class ControladorFlujo : MonoBehaviour
     public ControllerState CurrentState => currentState;
     public bool IsInitialized { get; private set; } = false;
 
-    // ---- EVENTOS PÚBLICOS ----
-    /// <summary>
-    /// Se dispara cuando cambia el estado del controlador
-    /// </summary>
-    public event Action<ControllerState> OnStateChanged;
-
-    /// <summary>
-    /// Se dispara cuando se detecta un RFID válido
-    /// </summary>
-    public event Action<string> OnRFIDDetected;
-
-    /// <summary>
-    /// Se dispara cuando la validación de RFID falla
-    /// </summary>
-    public event Action<string> OnValidationFailed;
-
     // ---- CONFIGURACIÓN ----
-    [SerializeField] private string VALID_RFID_ID = "001";
+    [SerializeField] private string VALID_RFID_ID = "silbato_forma_perro_cultura_quimbaya";
 
     // ---- VARIABLES INTERNAS ----
     private string lastRFIDRead = "";  // Para detectar cambios en RFID
+    private ParsedExperienceData currentExperienceData;
 
 
     // ============================================================
@@ -152,13 +137,11 @@ public class ControladorFlujo : MonoBehaviour
             if (sensorData.RFID == VALID_RFID_ID)
             {
                 Debug.Log("[ControladorFlujo] ID válido detectado. Transitando a EsperandoInicioExperiencia...");
-                OnRFIDDetected?.Invoke(sensorData.RFID);
                 TransitionToEsperandoInicioExperiencia();
             }
             else
             {
                 Debug.Log("[ControladorFlujo] ID inválido. Permaneciendo en EsperandoID");
-                OnValidationFailed?.Invoke(sensorData.RFID);
             }
         }
     }
@@ -177,8 +160,8 @@ public class ControladorFlujo : MonoBehaviour
         ConectorArduino.Instance.RequestState(ArduinoState.LeyendoDatos);
         Debug.Log("[ControladorFlujo] Solicitado a Arduino: LeyendoDatos");
         
+        currentExperienceData = ControladorDatos.Instance.GetExperienceData(lastRFIDRead);
         InitializeEsperandoInicioExperiencia();
-        OnStateChanged?.Invoke(currentState);
     }
 
 
@@ -189,6 +172,7 @@ public class ControladorFlujo : MonoBehaviour
     private void InitializeEsperandoInicioExperiencia()
     {
         Debug.Log("[ControladorFlujo] Inicializando estado: EsperandoInicioExperiencia");
+        GameObject.Find("placeholder modelo3D");
     }
 
     private void UpdateEsperandoInicioExperiencia()
@@ -207,7 +191,6 @@ public class ControladorFlujo : MonoBehaviour
         ExitEsperandoInicioExperiencia();
         currentState = ControllerState.InteraccionRuptura;
         InitializeInteraccionRuptura();
-        OnStateChanged?.Invoke(currentState);
         Debug.Log("[ControladorFlujo] Transición a: InteraccionRuptura");
     }
 
@@ -240,7 +223,6 @@ public class ControladorFlujo : MonoBehaviour
         ExitInteraccionRuptura();
         currentState = ControllerState.SecuenciaNarrativa;
         InitializeSecuenciaNarrativa();
-        OnStateChanged?.Invoke(currentState);
         Debug.Log("[ControladorFlujo] Transición a: SecuenciaNarrativa");
     }
 
@@ -274,7 +256,6 @@ public class ControladorFlujo : MonoBehaviour
         ExitSecuenciaNarrativa();
         currentState = ControllerState.Visor3D;
         InitializeVisor3D();
-        OnStateChanged?.Invoke(currentState);
         Debug.Log("[ControladorFlujo] Transición a: Visor3D");
     }
 
@@ -339,7 +320,6 @@ public class ControladorFlujo : MonoBehaviour
         // Cambiar al estado inicial
         currentState = ControllerState.EsperandoID;
         InitializeEsperandoID();
-        OnStateChanged?.Invoke(currentState);
     }
 
 
