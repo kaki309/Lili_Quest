@@ -345,7 +345,7 @@ public class ControladorFlujo : MonoBehaviour
 
 
     // ============================================================
-    // MÉTODOS PRIVADOS - GUARDIAS
+    // MÉTODOS PRIVADOS
     // ============================================================
 
     /// <summary>
