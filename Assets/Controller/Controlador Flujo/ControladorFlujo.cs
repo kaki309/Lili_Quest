@@ -1,8 +1,6 @@
 using System;
-using System.Collections;
 using UnityEngine;
 using GLTFast;
-using GLTFast.Loading;
 
 // ============================================================
 // ENUM Y TIPOS DE DATOS
@@ -34,9 +32,6 @@ public class ControladorFlujo : MonoBehaviour
     private ControllerState currentState = ControllerState.EsperandoID;
     public ControllerState CurrentState => currentState;
     public bool IsInitialized { get; private set; } = false;
-
-    // ---- CONFIGURACIÓN ----
-    [SerializeField] private string VALID_RFID_ID = "silbato_forma_perro_cultura_quimbaya";
 
     // ---- VARIABLES INTERNAS ----
     private string lastRFIDRead = "";  // Para detectar cambios en RFID
@@ -73,7 +68,7 @@ public class ControladorFlujo : MonoBehaviour
     {
         // Guardia: Verificar que Arduino está listo
         if (!IsArduinoReady()) return;  // No procesar si Arduino no está conectado
-        
+
         // Procesar lógica del estado actual
         ProcessStateTransition();
     }
@@ -135,15 +130,21 @@ public class ControladorFlujo : MonoBehaviour
             lastRFIDRead = sensorData.RFID;
             Debug.Log($"[ControladorFlujo] RFID leído: {sensorData.RFID}");
 
+            string[] availableIds = ControladorDatos.Instance.GetExperienceIds();
+
             // Validar RFID
-            if (sensorData.RFID == VALID_RFID_ID)
+            foreach (string id in availableIds)
             {
-                Debug.Log("[ControladorFlujo] ID válido detectado. Transitando a EsperandoInicioExperiencia...");
-                TransitionToEsperandoInicioExperiencia();
-            }
-            else
-            {
-                Debug.Log("[ControladorFlujo] ID inválido. Permaneciendo en EsperandoID");
+                if (sensorData.RFID == id)
+                {
+                    Debug.Log("[ControladorFlujo] ID válido detectado. Transitando a EsperandoInicioExperiencia...");
+                    TransitionToEsperandoInicioExperiencia();
+                    break;
+                }
+                else
+                {
+                    Debug.Log("[ControladorFlujo] ID inválido. Permaneciendo en EsperandoID");
+                }
             }
         }
     }
@@ -157,11 +158,11 @@ public class ControladorFlujo : MonoBehaviour
     {
         ExitEsperandoID();
         currentState = ControllerState.EsperandoInicioExperiencia;
-        
+
         // Solicitar a Arduino que cambie a modo LeyendoDatos
         ConectorArduino.Instance.RequestState(ArduinoState.LeyendoDatos);
         Debug.Log("[ControladorFlujo] Solicitado a Arduino: LeyendoDatos");
-        
+
         currentExperienceData = ControladorDatos.Instance.GetExperienceData(lastRFIDRead);
         InitializeEsperandoInicioExperiencia();
     }
@@ -210,6 +211,7 @@ public class ControladorFlujo : MonoBehaviour
         currentState = ControllerState.InteraccionRuptura;
         InitializeInteraccionRuptura();
         Debug.Log("[ControladorFlujo] Transición a: InteraccionRuptura");
+        LanzadorEscenas.Instance.cargarEscena(EscenasSistema.InteraccionConRuptura);
     }
 
     // ============================================================
@@ -242,6 +244,11 @@ public class ControladorFlujo : MonoBehaviour
         currentState = ControllerState.SecuenciaNarrativa;
         InitializeSecuenciaNarrativa();
         Debug.Log("[ControladorFlujo] Transición a: SecuenciaNarrativa");
+
+        if (LanzadorEscenas.Instance != null)
+        {
+            LanzadorEscenas.Instance.cargarEscena(EscenasSistema.Narrativa);
+        }
     }
 
 
@@ -275,6 +282,11 @@ public class ControladorFlujo : MonoBehaviour
         currentState = ControllerState.Visor3D;
         InitializeVisor3D();
         Debug.Log("[ControladorFlujo] Transición a: Visor3D");
+
+        if (LanzadorEscenas.Instance != null)
+        {
+            LanzadorEscenas.Instance.cargarEscena(EscenasSistema.Visor3D);
+        }
     }
 
 
@@ -315,8 +327,8 @@ public class ControladorFlujo : MonoBehaviour
     {
         Debug.Log("[ControladorFlujo] Reset abrupto a EsperandoID. Reiniciando flujo...");
 
-        if (currentState==ControllerState.EsperandoID) return;
-        
+        if (currentState == ControllerState.EsperandoID) return;
+
         // Salir del estado actual
         switch (currentState)
         {
