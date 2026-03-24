@@ -27,8 +27,8 @@ public class LanzadorEscenas : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    public void cargarEscena(int index)
+    public void cargarEscena(EscenasSistema escena)
     {
-        SceneManager.LoadScene(index);
+        SceneManager.LoadScene((int)escena);
     }
 }
