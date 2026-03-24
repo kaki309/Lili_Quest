@@ -1,8 +1,6 @@
 using System;
-using System.Collections;
 using UnityEngine;
 using GLTFast;
-using GLTFast.Loading;
 
 // ============================================================
 // ENUM Y TIPOS DE DATOS
@@ -210,6 +208,7 @@ public class ControladorFlujo : MonoBehaviour
         currentState = ControllerState.InteraccionRuptura;
         InitializeInteraccionRuptura();
         Debug.Log("[ControladorFlujo] Transición a: InteraccionRuptura");
+        LanzadorEscenas.Instance.cargarEscena(EscenasSistema.InteraccionConRuptura);
     }
 
     // ============================================================
@@ -242,6 +241,11 @@ public class ControladorFlujo : MonoBehaviour
         currentState = ControllerState.SecuenciaNarrativa;
         InitializeSecuenciaNarrativa();
         Debug.Log("[ControladorFlujo] Transición a: SecuenciaNarrativa");
+        
+        if (LanzadorEscenas.Instance != null)
+        {
+            LanzadorEscenas.Instance.cargarEscena(EscenasSistema.Narrativa);
+        }
     }
 
 
@@ -275,6 +279,11 @@ public class ControladorFlujo : MonoBehaviour
         currentState = ControllerState.Visor3D;
         InitializeVisor3D();
         Debug.Log("[ControladorFlujo] Transición a: Visor3D");
+        
+        if (LanzadorEscenas.Instance != null)
+        {
+            LanzadorEscenas.Instance.cargarEscena(EscenasSistema.Visor3D);
+        }
     }
 
 
