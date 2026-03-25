@@ -67,10 +67,11 @@ public class ControladorFlujo : MonoBehaviour
     private void Update()
     {
         // Guardia: Verificar que Arduino está listo
-        if (!IsArduinoReady()) return;  // No procesar si Arduino no está conectado
+        // No procesar si Arduino no está conectado
+        if (!IsArduinoReady()) return;
 
         // Procesar lógica del estado actual
-        ProcessStateTransition();
+        RunCurrentStateLogic();
     }
 
 
@@ -78,7 +79,7 @@ public class ControladorFlujo : MonoBehaviour
     // MÁQUINA DE ESTADOS
     // ============================================================
 
-    private void ProcessStateTransition()
+    private void RunCurrentStateLogic()
     {
         switch (currentState)
         {
