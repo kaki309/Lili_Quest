@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class GestorElementosUI : MonoBehaviour
 {
+    public static GestorElementosUI Instance;
     [SerializeField] Camera camara;
     [SerializeField] Button[] botones;
     [SerializeField] Image imagen;
@@ -13,6 +14,7 @@ public class GestorElementosUI : MonoBehaviour
 
     void Start()
     {
+        Instance = this;
         if (!camara) camara = Camera.main;
     }
 
