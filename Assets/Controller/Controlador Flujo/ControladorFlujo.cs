@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using GLTFast;
+using UnityEngine.UI;
 
 // ============================================================
 // ENUM Y TIPOS DE DATOS
@@ -176,29 +177,30 @@ public class ControladorFlujo : MonoBehaviour
     private void InitializeEsperandoInicioExperiencia()
     {
         Debug.Log("[ControladorFlujo] Inicializando estado: EsperandoInicioExperiencia");
-        GameObject placeholder = GameObject.Find("PlaceholderModelo3D");
-
-        if (placeholder == null)
-        {
-            Debug.LogError("[ControladorFlujo] No se encontró: Placeholder Modelo3D");
-            return;
-        }
 
         // Cargar el modelo 3D desde la ruta externa de forma asincrónica
+        GameObject container = GestorElementosUI.Instance.ContenedorModelo3D;
         if (currentExperienceData != null && !string.IsNullOrEmpty(currentExperienceData.modeloPath))
         {
-            LoadModelAsync(placeholder, currentExperienceData.modeloPath);
+            LoadModelAsync(container, currentExperienceData.modeloPath);
         }
         else
         {
             Debug.LogError("[ControladorFlujo] No hay datos de experiencia o ruta del modelo vacía");
         }
+
+        // Desactivar panel decorativo inicial
+        GameObject panel = GestorElementosUI.Instance.Otros[GestorElementosUI.Otrostipos.panelDecorativoInicial];
+        panel.SetActive(false);
+
+        // Activar botón para iniciar la experiencia
+        Button startButton = GestorElementosUI.Instance.Botones[0];
+        startButton.onClick.AddListener(TransitionToInteraccionRuptura);
     }
 
     private void UpdateEsperandoInicioExperiencia()
     {
-        // TODO: Obtener evento del jugador iniciando la experiencia
-        // - transicionar a Interacción Ruptura
+        // No hace nada. Está esperando
     }
 
     private void ExitEsperandoInicioExperiencia()
