@@ -278,7 +278,7 @@ public class Fractura : MonoBehaviour
         {
             // Activar física correctamente
             rb.isKinematic = false;
-            rb.useGravity = true;
+            rb.useGravity = false;
 
             //  frenar el movimiento
             rb.drag = 2f;          // resistencia al movimiento
