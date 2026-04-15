@@ -53,7 +53,7 @@ public class SensorData
     public string RFID;          // Identificador de etiqueta RFID (ej: "TAG_001")
     public JoystickData JOYSTICK; // Coordenadas X e Y del joystick (estructura)
     public string POT;            // Valor del potenciómetro (ej: "512")
-    public string BUTTON;         // Estado del botón: "P" (presionado) o "S" (sin presionar)
+    public string BUTTON;         // Estado del botón: "P" (presionado) o "S" (suelto)
 }
 ```
 

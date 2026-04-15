@@ -13,12 +13,11 @@ using UnityEngine.UI;
 public enum ControllerState
 {
     EsperandoID = 0,            // Esperando lectura de RFID
-    EsperandoInicioExperiencia = 1, // Esperando que el usuario inicie la experiencia
-    InteraccionRuptura = 2,     // Modo de interacción y ruptura (ruptura del objeto)
-    SecuenciaNarrativa = 3,     // Presentación de contenido histórico/narrativo
-    Visor3D = 4                 // Visualización del modelo 3D interactivo
+    EsperandoInicioExperiencia = 1, // Esperando usuario inicie experiencia
+    InteraccionRuptura = 2,     // Modo de interacción con ruptura
+    SecuenciaNarrativa = 3,     // Presentación de info arqueológica
+    Visor3D = 4                 // Visualización del modelo 3D
 }
-
 
 // ============================================================
 // CLASE PRINCIPAL: CONTROLADOR DE FLUJO
@@ -35,15 +34,14 @@ public class ControladorFlujo : MonoBehaviour
     public bool IsInitialized { get; private set; } = false;
 
     // ---- VARIABLES INTERNAS ----
-    private string lastRFIDRead = "";  // Para detectar cambios en RFID
-    private ParsedExperienceData currentExperienceData;
-
+    string lastRFIDRead = "";  // Para detectar cambios en RFID
+    ParsedExperienceData currentExperienceData;
+    SensorData interactionData;
 
     // ============================================================
     // CICLO DE VIDA
     // ============================================================
-
-    private void Awake()
+    void Awake()
     {
         // Implementar Singleton
         if (Instance != null && Instance != this)
@@ -57,30 +55,27 @@ public class ControladorFlujo : MonoBehaviour
         DontDestroyOnLoad(gameObject);
         Debug.Log("[ControladorFlujo] Singleton inicializado.");
     }
-
-    private void Start()
+    void Start()
     {
         IsInitialized = true;
         Debug.Log("[ControladorFlujo] Inicializado.");
         InitializeEsperandoID();
     }
-
-    private void Update()
+    void Update()
     {
-        // Guardia: Verificar que Arduino está listo
+        // Verificar que Arduino está listo
         // No procesar si Arduino no está conectado
         if (!IsArduinoReady()) return;
-
+        // Capturar datos desde arduino
+        interactionData = ConectorArduino.Instance.GetSensorData();
         // Procesar lógica del estado actual
         RunCurrentStateLogic();
     }
 
-
     // ============================================================
     // MÁQUINA DE ESTADOS
     // ============================================================
-
-    private void RunCurrentStateLogic()
+    void RunCurrentStateLogic()
     {
         switch (currentState)
         {
@@ -110,53 +105,39 @@ public class ControladorFlujo : MonoBehaviour
         }
     }
 
+    #region ESTADO: ESPERANDO ID
 
-    // ============================================================
-    // ESTADO: ESPERANDO ID
-    // ============================================================
-
-    private void InitializeEsperandoID()
+    void InitializeEsperandoID()
     {
         Debug.Log("[ControladorFlujo] Inicializando estado: EsperandoID");
         lastRFIDRead = "";
     }
 
-    private void UpdateEsperandoID()
+    void UpdateEsperandoID()
     {
-        // Leer datos de sensores
-        SensorData sensorData = ConectorArduino.Instance.GetSensorData();
+        // No ejecutar código si no hay cambios en el RFID
+        if (string.IsNullOrEmpty(interactionData.RFID) || interactionData.RFID == lastRFIDRead) return;
 
-        // Detectar cambio en RFID (evitar duplicados por frame)
-        if (!string.IsNullOrEmpty(sensorData.RFID) && sensorData.RFID != lastRFIDRead)
+        Debug.Log($"[ControladorFlujo] RFID leído: {interactionData.RFID}");
+        lastRFIDRead = interactionData.RFID;
+        string[] availableIds = ControladorDatos.Instance.GetExperienceIds();
+
+        // Validar RFID
+        foreach (string id in availableIds)
         {
-            lastRFIDRead = sensorData.RFID;
-            Debug.Log($"[ControladorFlujo] RFID leído: {sensorData.RFID}");
-
-            string[] availableIds = ControladorDatos.Instance.GetExperienceIds();
-
-            // Validar RFID
-            foreach (string id in availableIds)
+            if (interactionData.RFID == id)
             {
-                if (sensorData.RFID == id)
-                {
-                    Debug.Log("[ControladorFlujo] ID válido detectado. Transitando a EsperandoInicioExperiencia...");
-                    TransitionToEsperandoInicioExperiencia();
-                    break;
-                }
-                else
-                {
-                    Debug.Log("[ControladorFlujo] ID inválido. Permaneciendo en EsperandoID");
-                }
+                Debug.Log("[ControladorFlujo] ID válido detectado. Transitando a EsperandoInicioExperiencia...");
+                TransitionToEsperandoInicioExperiencia();
+                break;
+            }
+            else
+            {
+                Debug.Log("[ControladorFlujo] ID inválido. Permaneciendo en EsperandoID");
             }
         }
     }
-
-    private void ExitEsperandoID()
-    {
-        Debug.Log("[ControladorFlujo] Saliendo del estado: EsperandoID");
-    }
-
-    private void TransitionToEsperandoInicioExperiencia()
+    void TransitionToEsperandoInicioExperiencia()
     {
         ExitEsperandoID();
         currentState = ControllerState.EsperandoInicioExperiencia;
@@ -168,47 +149,45 @@ public class ControladorFlujo : MonoBehaviour
         currentExperienceData = ControladorDatos.Instance.GetExperienceData(lastRFIDRead);
         InitializeEsperandoInicioExperiencia();
     }
+    void ExitEsperandoID()
+    {
+        Debug.Log("[ControladorFlujo] Saliendo del estado: EsperandoID");
+    }
+    #endregion
 
+    #region ESTADO: ESPERANDO INICIO EXPERIENCIA
 
-    // ============================================================
-    // ESTADO: ESPERANDO INICIO EXPERIENCIA
-    // ============================================================
-
-    private void InitializeEsperandoInicioExperiencia()
+    void InitializeEsperandoInicioExperiencia()
     {
         Debug.Log("[ControladorFlujo] Inicializando estado: EsperandoInicioExperiencia");
 
         // Cargar el modelo 3D desde la ruta externa de forma asincrónica
-        GameObject container = GestorElementosUI.Instance.ContenedorModelo3D;
+        GameObject container = GestorInterfazPantallaInicio.Instance.ContenedorModelo3D;
         if (currentExperienceData != null && !string.IsNullOrEmpty(currentExperienceData.modeloPath))
         {
             LoadModelAsync(container, currentExperienceData.modeloPath);
         }
         else
         {
-            Debug.LogError("[ControladorFlujo] No hay datos de experiencia o ruta del modelo vacía");
+            Debug.LogError("[ControladorFlujo] No se pudo cargar el modelo 3D de la experiencia");
         }
 
         // Desactivar panel decorativo inicial
-        GameObject panel = GestorElementosUI.Instance.Otros[GestorElementosUI.Otrostipos.panelDecorativoInicial];
-        panel.SetActive(false);
+        GestorInterfazPantallaInicio.Instance.panelDecorativo.SetActive(false);
 
         // Activar botón para iniciar la experiencia
-        Button startButton = GestorElementosUI.Instance.Botones[0];
+        Button startButton = GestorInterfazPantallaInicio.Instance.BotonInicioExperiencia;
+        startButton.gameObject.SetActive(true);
         startButton.onClick.AddListener(TransitionToInteraccionRuptura);
     }
-
-    private void UpdateEsperandoInicioExperiencia()
+    void UpdateEsperandoInicioExperiencia()
     {
-        // No hace nada. Está esperando
+        if (interactionData.ButtonPressed){
+            GestorInterfazPantallaInicio.Instance.BotonInicioExperiencia.onClick.Invoke();
+            TransitionToInteraccionRuptura();
+        }
     }
-
-    private void ExitEsperandoInicioExperiencia()
-    {
-        Debug.Log("[ControladorFlujo] Saliendo del estado: EsperandoInicioExperiencia");
-    }
-
-    private void TransitionToInteraccionRuptura()
+    void TransitionToInteraccionRuptura()
     {
         ExitEsperandoInicioExperiencia();
         currentState = ControllerState.InteraccionRuptura;
@@ -216,10 +195,13 @@ public class ControladorFlujo : MonoBehaviour
         Debug.Log("[ControladorFlujo] Transición a: InteraccionRuptura");
         LanzadorEscenas.Instance.cargarEscena(EscenasSistema.InteraccionConRuptura);
     }
+    void ExitEsperandoInicioExperiencia()
+    {
+        Debug.Log("[ControladorFlujo] Saliendo del estado: EsperandoInicioExperiencia");
+    }
+    #endregion
 
-    // ============================================================
-    // ESTADO: INTERACCIÓN Y RUPTURA (SKELETON)
-    // ============================================================
+    #region ESTADO: INTERACCIÓN Y RUPTURA (SKELETON)
 
     private void InitializeInteraccionRuptura()
     {
@@ -253,11 +235,9 @@ public class ControladorFlujo : MonoBehaviour
             LanzadorEscenas.Instance.cargarEscena(EscenasSistema.Narrativa);
         }
     }
+    #endregion
 
-
-    // ============================================================
-    // ESTADO: SECUENCIA NARRATIVA (SKELETON)
-    // ============================================================
+    #region ESTADO: SECUENCIA NARRATIVA (SKELETON)
 
     private void InitializeSecuenciaNarrativa()
     {
@@ -291,11 +271,9 @@ public class ControladorFlujo : MonoBehaviour
             LanzadorEscenas.Instance.cargarEscena(EscenasSistema.Visor3D);
         }
     }
+    #endregion
 
-
-    // ============================================================
-    // ESTADO: VISOR 3D (SKELETON)
-    // ============================================================
+    #region ESTADO: VISOR 3D (SKELETON)
 
     private void InitializeVisor3D()
     {
@@ -316,11 +294,9 @@ public class ControladorFlujo : MonoBehaviour
     {
         Debug.Log("[ControladorFlujo] Saliendo del estado: Visor3D");
     }
+    #endregion
 
-
-    // ============================================================
-    // MÉTODOS PÚBLICOS
-    // ============================================================
+    #region MÉTODOS PÚBLICOS
 
     /// <summary>
     /// Reset abruptos: Vuelve al estado inicial y reinicia Arduino a lectura de RFID
@@ -357,11 +333,9 @@ public class ControladorFlujo : MonoBehaviour
         currentState = ControllerState.EsperandoID;
         InitializeEsperandoID();
     }
+    #endregion
 
-
-    // ============================================================
-    // MÉTODOS PRIVADOS
-    // ============================================================
+    #region MÉTODOS PRIVADOS
 
     /// <summary>
     /// Verifica que Arduino está conectado Y en el estado EsperandoRFID
@@ -394,4 +368,5 @@ public class ControladorFlujo : MonoBehaviour
             Debug.LogError($"[ControladorFlujo] Fallo al cargar: {modelPath}");
         }
     }
+    #endregion
 }

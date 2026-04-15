@@ -43,6 +43,7 @@ public class SimuladorArduino : MonoBehaviour
     private int joystickY = 0;
     private string potLeido = "";
     private string botonLeido = "";
+    private bool buttonPressPending = false;
     
     // ========== GUI ==========
     private string[] availablePorts = new string[0];
@@ -245,6 +246,12 @@ public class SimuladorArduino : MonoBehaviour
                 SendRandomSensorData();
             }
 
+            if (GUILayout.Button(buttonPressPending ? "🔘 Pulsación simulada: P" : "🔘 Simular pulsación", GUILayout.Height(30)))
+            {
+                buttonPressPending = true;
+                statusMessage = "Pulsación simulada armada para el próximo envío";
+            }
+
             GUILayout.Space(5);
 
             // Solicitar cambios de estado usando API pública de ConectorArduino
@@ -438,7 +445,8 @@ public class SimuladorArduino : MonoBehaviour
 
         try
         {
-            string json = $"{{\"RFID\":\"{rfidTag}\",\"JOYSTICK\":\"0-0\",\"POT\":\"0\",\"BUTTON\":\"S\"}}";
+            string buttonState = GetButtonStateForSend();
+            string json = $"{{\"RFID\":\"{rfidTag}\",\"JOYSTICK\":\"0-0\",\"POT\":\"0\",\"BUTTON\":\"{buttonState}\"}}";
             serialPort.WriteLine(json);
             serialPort.BaseStream.Flush();
             Debug.Log($"[SimuladorArduino] 📤 RFID enviado: {json}");
@@ -465,7 +473,8 @@ public class SimuladorArduino : MonoBehaviour
 
         try
         {
-            string json = $"{{\"RFID\":\"{rfidTag}\",\"JOYSTICK\":\"{joyX}-{joyY}\",\"POT\":\"{potValue}\",\"BUTTON\":\"{buttonState}\"}}";
+            string simulatedButtonState = GetButtonStateForSend();
+            string json = $"{{\"RFID\":\"{rfidTag}\",\"JOYSTICK\":\"{joyX}-{joyY}\",\"POT\":\"{potValue}\",\"BUTTON\":\"{simulatedButtonState}\"}}";
             serialPort.WriteLine(json);
             serialPort.BaseStream.Flush();
             Debug.Log($"[SimuladorArduino] 📤 Datos enviados: {json}");
@@ -497,7 +506,7 @@ public class SimuladorArduino : MonoBehaviour
             int randomJoyX = UnityEngine.Random.Range(0, 256);          // Joystick X: 0-255
             int randomJoyY = UnityEngine.Random.Range(0, 256);          // Joystick Y: 0-255
             int randomPot = UnityEngine.Random.Range(0, 1024);          // Potenciómetro: 0-1023
-            string randomButton = UnityEngine.Random.Range(0, 2) == 0 ? "P" : "S";  // Botón: P o S
+            string randomButton = GetButtonStateForSend();  // Botón: S por defecto, P solo si se simuló una pulsación
             string rfidTag = rfidInputField;                 // Usa el RFID del input
 
             string json = $"{{\"RFID\":\"{rfidTag}\",\"JOYSTICK\":\"{randomJoyX}-{randomJoyY}\",\"POT\":\"{randomPot}\",\"BUTTON\":\"{randomButton}\"}}";
@@ -516,5 +525,19 @@ public class SimuladorArduino : MonoBehaviour
     private void OnApplicationQuit()
     {
         DisconnectFromPort();
+    }
+
+    /// <summary>
+    /// Devuelve P una sola vez si hay una pulsación simulada pendiente; en caso contrario devuelve S.
+    /// </summary>
+    private string GetButtonStateForSend()
+    {
+        if (buttonPressPending)
+        {
+            buttonPressPending = false;
+            return "P";
+        }
+
+        return "S";
     }
 }

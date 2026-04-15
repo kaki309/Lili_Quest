@@ -45,7 +45,8 @@ public class SensorData
     public string RFID;
     public JoystickData JOYSTICK;
     public string POT;
-    public string BUTTON; // "P" = presionado, "S" = sin presionar
+    public string BUTTON; // "P" = presionado, "S" = suuelto
+    public bool ButtonPressed;
 
     public SensorData()
     {
@@ -53,10 +54,11 @@ public class SensorData
         JOYSTICK = new JoystickData("0-0");
         POT = null;
         BUTTON = null;
+        ButtonPressed = false;
     }
 
     public override string ToString() => 
-        $"RFID: {RFID}, Joystick: {JOYSTICK}, POT: {POT}, Button: {BUTTON}";
+        $"RFID: {RFID}, Joystick: {JOYSTICK}, POT: {POT}, Button: {BUTTON}, ButtonPressed: {ButtonPressed}";
 }
 
 /// <summary>
@@ -280,6 +282,7 @@ public class ConectorArduino : MonoBehaviour
                 sensorData.JOYSTICK = new JoystickData(payload.JOYSTICK);
             sensorData.POT = payload.POT;
             sensorData.BUTTON = payload.BUTTON;
+            sensorData.ButtonPressed = payload.BUTTON == "P";
         }
         catch
         {

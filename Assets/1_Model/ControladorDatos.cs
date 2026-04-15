@@ -11,9 +11,9 @@ using UnityEngine;
 
 public class ControladorDatos : MonoBehaviour
 {
-    public static ControladorDatos Instance {get; private set;}
+    public static ControladorDatos Instance { get; private set; }
 
-    // En memoria: diccionario ID -> ExperienceData
+    // En memoria: Diccionario, ID devuelve ExperienceData
     private Dictionary<string, ExperienceData> _database;
     private const string EXTERNAL_FOLDER_NAME = "ExperienciasMuseo";
     private const string JSON_FILENAME = "SerializadorDatos.json";
@@ -21,6 +21,8 @@ public class ControladorDatos : MonoBehaviour
 
     private string _externalDataPath;
     private string _streamingAssetsPath;
+    [Header("Solo para el Unity Editor")]
+    [SerializeField] bool showDebugUI;
 
     // ========================================================================
     // CICLO DE VIDA
@@ -52,6 +54,7 @@ public class ControladorDatos : MonoBehaviour
 
     private void OnGUI()
     {
+        if (!showDebugUI) return;
         DrawDebugPanel();
     }
 
@@ -255,12 +258,12 @@ public class ControladorDatos : MonoBehaviour
             {
                 // Extraer pares clave-valor del JSON
                 var dict = ParseJsonDictionary(jsonContent);
-                
+
                 foreach (var kvp in dict)
                 {
                     string experienceId = kvp.Key;
                     string experienceJson = kvp.Value;
-                    
+
                     try
                     {
                         ExperienceData data = JsonUtility.FromJson<ExperienceData>(experienceJson);
@@ -396,7 +399,7 @@ public class ControladorDatos : MonoBehaviour
         try
         {
             if (!Directory.Exists(folderPath)) return false;
-            
+
             if (!File.Exists(Path.Combine(folderPath, data.modelo))) return false;
             if (!File.Exists(Path.Combine(folderPath, data.secuencia))) return false;
             if (!Directory.Exists(Path.Combine(folderPath, "imagenes"))) return false;
@@ -517,7 +520,7 @@ public class ControladorDatos : MonoBehaviour
 
                 // Serializar la experiencia
                 string dataJson = JsonUtility.ToJson(data, true);
-                
+
                 // Agregar con la clave ID
                 jsonParts.Add($"  \"{id}\": {dataJson}");
             }
@@ -584,13 +587,13 @@ public class ControladorDatos : MonoBehaviour
             foreach (string file in files)
             {
                 string fileName = Path.GetFileName(file);
-                
+
                 // Saltar archivos .meta (metadatos de Unity del editor)
                 if (fileName.EndsWith(".meta", System.StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
-                
+
                 string destFile = Path.Combine(destDir, fileName);
                 File.Copy(file, destFile, true);
             }
