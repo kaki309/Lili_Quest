@@ -312,7 +312,6 @@ GameObject:
   - component: {fileID: 1447895198}
   - component: {fileID: 1447895197}
   - component: {fileID: 1447895203}
-  - component: {fileID: 1447895205}
   - component: {fileID: 1447895204}
   m_Layer: 0
   m_Name: Pieza
@@ -477,23 +476,6 @@ MonoBehaviour:
   radius: 1
   upward: 0.2
   currentRefractureCount: 0
---- !u!114 &1447895205
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1447895195}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f474d492a12bbb441927501a4d58e799, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  velRotacion: 100
-  velZoom: 3
-  camara: {fileID: 1948258134}
-  limiteRotacion: 1080
-  fractureScript: {fileID: 1447895204}
 --- !u!1 &1948258131
 GameObject:
   m_ObjectHideFlags: 0
@@ -506,6 +488,7 @@ GameObject:
   - component: {fileID: 1948258133}
   - component: {fileID: 1948258132}
   - component: {fileID: 1948258135}
+  - component: {fileID: 1948258136}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -631,6 +614,25 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
+--- !u!114 &1948258136
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1948258131}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 909135a9b127de94592314f404180acb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  velRotacion: 2
+  velZoom: 4
+  objetivo: {fileID: 1447895200}
+  limiteRotacion: 1080
+  distanciaMin: 8
+  distanciaMax: 15
+  fractureScript: {fileID: 1447895204}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
