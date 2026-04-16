@@ -32,8 +32,8 @@ public class MovimientoCamara : MonoBehaviour
 
         var data = ConectorArduino.Instance.GetSensorData();
 
-        float joyX = data.JOYSTICK.X;
-        float joyY = data.JOYSTICK.Y;
+        float joyX = data.JOYSTICK.X / 2;
+        float joyY = data.JOYSTICK.Y / 2;
 
         // Mapeo de DATOS según envío real de Arduino (0:1024 -> 0:1)
         //float joyX = (data.JOYSTICK.X - 512f) / 512f;
