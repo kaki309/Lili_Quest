@@ -75,12 +75,14 @@ public class ControladorFlujo : MonoBehaviour
         // Capturar datos desde arduino
         interactionData = ConectorArduino.Instance.GetSensorData();
 
-        // Procesar lógica del estado actual mientras no esté inicializando
+        // Procesar lógica del estado actual mientras no esté en proceso de inicialización
         if (!isInitializingState)
         {
             RunCurrentStateLogic();
         }
 
+        // Revisar si la experiencia se está cancelando al cambiar de RFID
+        //CheckIfExperienceIsInterrupted();
     }
 
     // ============================================================
@@ -186,8 +188,8 @@ public class ControladorFlujo : MonoBehaviour
             Debug.LogError("[ControladorFlujo] No se pudo cargar el modelo 3D de la experiencia");
         }
 
-        // Desactivar panel decorativo inicial
-        GestorInterfazPantallaInicio.Instance.panelDecorativo.SetActive(false);
+        // Desactivar texto de espera de lectura
+        GestorInterfazPantallaInicio.Instance.textoEsperandoLectura.SetActive(false);
 
         // Activar botón para iniciar la experiencia
         Button startButton = GestorInterfazPantallaInicio.Instance.BotonInicioExperiencia;
@@ -209,7 +211,7 @@ public class ControladorFlujo : MonoBehaviour
         currentState = ControllerState.InteraccionRuptura;
         InitializeInteraccionRuptura();
         Debug.Log("[ControladorFlujo] Transición a: InteraccionRuptura");
-        LanzadorEscenas.Instance.cargarEscena(EscenasSistema.InteraccionConRuptura);
+        LanzadorEscenas.Instance.cargarEscena(EscenasSistema.Visor3D);
     }
     void ExitEsperandoInicioExperiencia()
     {
@@ -218,7 +220,6 @@ public class ControladorFlujo : MonoBehaviour
     #endregion
 
     #region ESTADO: INTERACCIÓN Y RUPTURA
-
     void InitializeInteraccionRuptura()
     {
         isInitializingState = true;
@@ -274,7 +275,7 @@ public class ControladorFlujo : MonoBehaviour
     {
         isSwitchingState = true;
         ExitInteraccionRuptura();
-        
+
         // Sincronizar MANUALMENTE este tiempo con lo que tarde las interacciones que realice el asistente al ocurrir la ruptura del modelo
         yield return new WaitForSeconds(5f);
 
@@ -300,7 +301,7 @@ public class ControladorFlujo : MonoBehaviour
     }
     #endregion
 
-    #region ESTADO: SECUENCIA NARRATIVA (SKELETON)
+    #region ESTADO: SECUENCIA NARRATIVA 
 
     private void InitializeSecuenciaNarrativa()
     {
@@ -316,12 +317,6 @@ public class ControladorFlujo : MonoBehaviour
         // - Reprodución de diálogos del asistente
         // - Detección de fin de secuencia
     }
-
-    private void ExitSecuenciaNarrativa()
-    {
-        Debug.Log("[ControladorFlujo] Saliendo del estado: SecuenciaNarrativa");
-    }
-
     private void TransitionToVisor3D()
     {
         ExitSecuenciaNarrativa();
@@ -334,23 +329,51 @@ public class ControladorFlujo : MonoBehaviour
             LanzadorEscenas.Instance.cargarEscena(EscenasSistema.Visor3D);
         }
     }
+    private void ExitSecuenciaNarrativa()
+    {
+        Debug.Log("[ControladorFlujo] Saliendo del estado: SecuenciaNarrativa");
+    }
     #endregion
 
-    #region ESTADO: VISOR 3D (SKELETON)
+    #region ESTADO: VISOR 3D 
 
     private void InitializeVisor3D()
     {
+        isInitializingState = true;
         Debug.Log("[ControladorFlujo] Inicializando estado: Visor3D");
-        // TODO: Implementar lógica de visor 3D en fase futura
-        // - Cambio de escena correspondiente
+
+        StartCoroutine(asyncGetGameObjectOfType<GestorInterfazPantallasVisor3D>((obj) =>
+        {
+            Camera camara = Camera.main;
+            // Activamos el movimiento de cámara y desactivamos ruptura de modelo
+            camara.GetComponent<MovimientoCamara>().enabled = true;
+            camara.GetComponent<MovimientoCamara>().activateFracture = false;
+            // Instanciamos el modelo 3D
+            GameObject container = GestorInterfazPantallasVisor3D.Instance.ContenedorModelo3D;
+            if (currentExperienceData != null && !string.IsNullOrEmpty(currentExperienceData.modeloPath))
+            {
+                LoadModelAsync(container, currentExperienceData.modeloPath, () =>
+                {
+                    // Callback para cuando se instancie el modelo
+
+                    // Obtenemos el modelo instanciado
+                    GameObject model = container.transform.GetChild(0).gameObject;
+                    // Actualizamos la referencia en la cámara
+                    camara.GetComponent<MovimientoCamara>().SetObjetivo(model);
+                    // Salimos de la inicialización
+                    isInitializingState = false;
+                });
+            }
+            else
+            {
+                Debug.LogError("[ControladorFlujo] No se pudo cargar el modelo 3D de la experiencia");
+            }
+        }));
     }
 
     private void UpdateVisor3D()
     {
-        // TODO: Implementar lógica de actualización para Visor3D
-        // - Rotación/zoom del modelo 3D
-        // - Interacción con puntos de interés
-        // - Detección de fin de exploración
+
     }
 
     private void ExitVisor3D()
@@ -392,6 +415,11 @@ public class ControladorFlujo : MonoBehaviour
         ConectorArduino.Instance.RequestState(ArduinoState.EsperandoRFID);
         Debug.Log("[ControladorFlujo] Solicitado a Arduino: EsperandoRFID (Reset)");
 
+        if (LanzadorEscenas.Instance != null)
+        {
+            LanzadorEscenas.Instance.cargarEscena(EscenasSistema.Inicio);
+        }
+
         // Cambiar al estado inicial
         currentState = ControllerState.EsperandoID;
         InitializeEsperandoID();
@@ -399,6 +427,11 @@ public class ControladorFlujo : MonoBehaviour
     public void SetModelFragmentedState(bool value)
     {
         hasFragmentedModel = value;
+        GestorInterfazPantallasVisor3D.Instance.AudioSource.Play();
+    }
+    public void finishNarrativaState()
+    {
+        TransitionToVisor3D();
     }
     #endregion
 
@@ -445,6 +478,11 @@ public class ControladorFlujo : MonoBehaviour
         }
         // Pasamos el objeto al callback
         callback?.Invoke(obj);
+    }
+    void CheckIfExperienceIsInterrupted()
+    {
+        if (string.IsNullOrEmpty(interactionData.RFID) || interactionData.RFID == lastRFIDRead) return;
+        ResetToStartState();
     }
 
     #endregion

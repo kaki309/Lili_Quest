@@ -508,9 +508,9 @@ public class SimuladorArduino : MonoBehaviour
         try
         {
             // Generar valores aleatorios
-            int randomJoyX = UnityEngine.Random.Range(0, 256);          // Joystick X: 0-255
-            int randomJoyY = UnityEngine.Random.Range(0, 256);          // Joystick Y: 0-255
-            int randomPot = UnityEngine.Random.Range(0, 1024);          // Potenciómetro: 0-1023
+            int randomJoyX = UnityEngine.Random.Range(0, 1024);          // Joystick X
+            int randomJoyY = UnityEngine.Random.Range(0, 1024);          // Joystick Y
+            int randomPot = UnityEngine.Random.Range(0, 1024);          // Potenciómetro
             string randomButton = GetButtonStateForSend();  // Botón: S por defecto, P solo si se simuló una pulsación
             string rfidTag = rfidInputField;                 // Usa el RFID del input
 

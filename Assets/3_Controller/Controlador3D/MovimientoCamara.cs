@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class MovimientoCamara : MonoBehaviour
@@ -11,8 +9,9 @@ public class MovimientoCamara : MonoBehaviour
     [SerializeField] float distanciaMax = 15f;
 
     [Header("Fractura de modelo (Si aplica)")]
-    [SerializeField] bool activateFracture = false;
+    public bool activateFracture = false;
     [SerializeField] float limiteRotacion = 1080f;
+    [SerializeField] ParticleSystem particulas;
     Transform objetivo;
     Vector3 puntoFijo;
     Fractura fractureScript;
@@ -36,12 +35,12 @@ public class MovimientoCamara : MonoBehaviour
         float joyX = data.JOYSTICK.X;
         float joyY = data.JOYSTICK.Y;
 
-        // DATOS DE ARDUINO REAL (Supuestamente)
+        // Mapeo de DATOS según envío real de Arduino (0:1024 -> 0:1)
         //float joyX = (data.JOYSTICK.X - 512f) / 512f;
         //float joyY = (data.JOYSTICK.Y - 512f) / 512f;
 
 
-        ///DATOS PARA EL SIULADOR
+        ///DATOS PARA EL SIMULADOR
         float rotY = -joyX * velRotacion * Time.deltaTime;
         float rotX = joyY * velRotacion * Time.deltaTime;
 
@@ -81,6 +80,7 @@ public class MovimientoCamara : MonoBehaviour
             if (fractureScript != null)
             {
                 fractureScript.ApplyExplosionForce();
+                particulas.Play();
             }
             yaFracturo = true;
             ControladorFlujo.Instance.SetModelFragmentedState(true);
