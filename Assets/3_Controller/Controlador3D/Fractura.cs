@@ -11,12 +11,11 @@ using UnityEngine;
 public class Fractura : MonoBehaviour
 
 {
-    public TriggerOptions triggerOptions;
     public FractureOptions fractureOptions;
     public RefractureOptions refractureOptions;
     public CallbackOptions callbackOptions;
 
-    public float force = 5f;    
+    public float force = 5f;
     public float radius = 1f;
     public float upward = 0.2f;
 
@@ -71,59 +70,6 @@ public class Fractura : MonoBehaviour
             }
         }
     }
-
-    void OnCollisionEnter(Collision collision)
-    {
-        if (triggerOptions.triggerType == TriggerType.Collision)
-        {
-            if (collision.contactCount > 0)
-            {
-                // Collision force must exceed the minimum force (F = I / T)
-                var contact = collision.contacts[0];
-                float collisionForce = collision.impulse.magnitude / Time.fixedDeltaTime;
-
-                // Colliding object tag must be in the set of allowed collision tags if filtering by tag is enabled
-                bool tagAllowed = triggerOptions.IsTagAllowed(contact.otherCollider.gameObject.tag);
-
-                // Object is unfrozen if the colliding object has the correct tag (if tag filtering is enabled)
-                // and the collision force exceeds the minimum collision force.
-                if (collisionForce > triggerOptions.minimumCollisionForce &&
-                   (triggerOptions.filterCollisionsByTag && tagAllowed))
-                {
-                    callbackOptions.CallOnFracture(contact.otherCollider, gameObject, contact.point);
-                    this.ComputeFracture();
-                }
-            }
-        }
-    }
-
-    void OnTriggerEnter(Collider collider)
-    {
-        if (triggerOptions.triggerType == TriggerType.Trigger)
-        {
-            // Colliding object tag must be in the set of allowed collision tags if filtering by tag is enabled
-            bool tagAllowed = triggerOptions.IsTagAllowed(collider.gameObject.tag);
-
-            if (triggerOptions.filterCollisionsByTag && tagAllowed)
-            {
-                callbackOptions.CallOnFracture(collider, gameObject, transform.position);
-                this.ComputeFracture();
-            }
-        }
-    }
-
-    void Update()
-    {
-        if (triggerOptions.triggerType == TriggerType.Keyboard)
-        {
-            if (Input.GetKeyDown(triggerOptions.triggerKey))
-            {
-                callbackOptions.CallOnFracture(null, gameObject, transform.position);
-                this.ComputeFracture();
-            }
-        }
-    }
-
     /// <summary>
     /// Compute the fracture and create the fragments
     /// </summary>
@@ -182,7 +128,6 @@ public class Fractura : MonoBehaviour
                                     this.fractureOptions,
                                     fragmentTemplate,
                                     this.fragmentRoot.transform);
-                                    ApplyExplosionForce();
 
                 // Done with template, destroy it
                 GameObject.Destroy(fragmentTemplate);
@@ -256,39 +201,35 @@ public class Fractura : MonoBehaviour
     /// Convenience method for copying this component to another component
     /// </summary>
     /// <param name="obj">The GameObject to copy the component to</param>
-    private void CopyFractureComponent(GameObject obj)
+    public void CopyFractureComponent(GameObject obj)
     {
         var fractureComponent = obj.AddComponent<Fractura>();
 
-        fractureComponent.triggerOptions = this.triggerOptions;
         fractureComponent.fractureOptions = this.fractureOptions;
         fractureComponent.refractureOptions = this.refractureOptions;
         fractureComponent.callbackOptions = this.callbackOptions;
         fractureComponent.currentRefractureCount = this.currentRefractureCount + 1;
         fractureComponent.fragmentRoot = this.fragmentRoot;
     }
-    
-    private void ApplyExplosionForce()
+
+    public void ApplyExplosionForce()
     {
-    
-    foreach (Transform fragment in fragmentRoot.transform)
-    {
-        Rigidbody rb = fragment.GetComponent<Rigidbody>();
-        if (rb != null)
+        foreach (Transform fragment in fragmentRoot.transform)
         {
-            // Activar física correctamente
-            rb.isKinematic = false;
-            rb.useGravity = false;
+            Rigidbody rb = fragment.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                // Activar física correctamente
+                rb.isKinematic = false;
+                rb.useGravity = false;
 
-            //  frenar el movimiento
-            rb.drag = 2f;          // resistencia al movimiento
-            rb.angularDrag = 3f;   // resistencia a rotación
+                //  frenar el movimiento
+                rb.drag = 2f;          // resistencia al movimiento
+                rb.angularDrag = 3f;   // resistencia a rotación
 
-            // Pequeño impulso
-            rb.AddExplosionForce(force, transform.position, radius, upward, ForceMode.Impulse);
+                // Pequeño impulso
+                rb.AddExplosionForce(force, transform.position, radius, upward, ForceMode.Impulse);
+            }
         }
     }
-    }
-
-
 }

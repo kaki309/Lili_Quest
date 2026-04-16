@@ -4,33 +4,23 @@ using UnityEngine;
 
 public class MovimientoCamara : MonoBehaviour
 {
-    public float velRotacion = 1;
-    public float velZoom = 5f;
+    [Header("Movimiento de cámara")]
+    [SerializeField] float velRotacion = 1;
+    [SerializeField] float velZoom = 5f;
+    [SerializeField] float distanciaMin = 5;
+    [SerializeField] float distanciaMax = 15f;
 
-    [Header("Objeto objetivo")]
-    public Transform objetivo;
-
-    [Header("Limite de giro acumulado")]
-    public float limiteRotacion = 1080f;
-
-    [Header("Distancia de zoom")]
-    public float distanciaMin = 5;
-    public float distanciaMax = 15f;
-
-    private float acumuladoY = 0f;
-    private bool yaFracturo = false;
-
-    private Vector3 puntoFijo;
-
-    public Fractura fractureScript;
+    [Header("Fractura de modelo (Si aplica)")]
+    [SerializeField] bool activateFracture = false;
+    [SerializeField] float limiteRotacion = 1080f;
+    Transform objetivo;
+    Vector3 puntoFijo;
+    Fractura fractureScript;
+    public float acumuladoY = 0f;
+    bool yaFracturo = false;
 
     void Start()
     {
-        if (ConectorArduino.Instance != null)
-        {
-            ConectorArduino.Instance.RequestState(ArduinoState.LeyendoDatos);
-        }
-
         if (objetivo != null)
         {
             puntoFijo = objetivo.position;
@@ -39,15 +29,14 @@ public class MovimientoCamara : MonoBehaviour
 
     void Update()
     {
-        if (ConectorArduino.Instance == null || !ConectorArduino.Instance.IsConnected)
-            return;
+        if (ConectorArduino.Instance == null || !ConectorArduino.Instance.IsConnected) return;
 
         var data = ConectorArduino.Instance.GetSensorData();
 
         float joyX = data.JOYSTICK.X;
         float joyY = data.JOYSTICK.Y;
 
-        // DATOS DE ARUIDNO REAL (Supuestamente)
+        // DATOS DE ARDUINO REAL (Supuestamente)
         //float joyX = (data.JOYSTICK.X - 512f) / 512f;
         //float joyY = (data.JOYSTICK.Y - 512f) / 512f;
 
@@ -63,24 +52,9 @@ public class MovimientoCamara : MonoBehaviour
         acumuladoY += rotY;
 
         // =========================
-        // FRACTURA
-        // =========================
-        if (!yaFracturo && Mathf.Abs(acumuladoY) >= limiteRotacion)
-        {
-            yaFracturo = true;
-
-            Debug.Log("FRACTURA POR GIRO");
-
-            if (fractureScript != null)
-            {
-                fractureScript.CauseFracture();
-            }
-        }
-
-        // =========================
         // ZOOM
         // =========================
-       if (float.TryParse(data.POT, out float pot))
+        if (float.TryParse(data.POT, out float pot))
         {
             float zoom = (pot - 512f) / 512f;
 
@@ -96,5 +70,26 @@ public class MovimientoCamara : MonoBehaviour
                 transform.position += direccion * zoom * velZoom * Time.deltaTime;
             }
         }
+
+        // =========================
+        // FRACTURA
+        // =========================
+        if (!activateFracture) return;
+
+        if (!yaFracturo && Mathf.Abs(acumuladoY) >= limiteRotacion)
+        {
+            if (fractureScript != null)
+            {
+                fractureScript.ApplyExplosionForce();
+            }
+            yaFracturo = true;
+            ControladorFlujo.Instance.SetModelFragmentedState(true);
+        }
+    }
+
+    public void SetObjetivo(GameObject obj)
+    {
+        objetivo = obj.transform;
+        fractureScript = obj.GetComponent<Fractura>();
     }
 }

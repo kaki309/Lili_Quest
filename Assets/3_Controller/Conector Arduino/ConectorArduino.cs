@@ -2,6 +2,7 @@ using System;
 using System.IO.Ports;
 using System.Collections;
 using UnityEngine;
+using TMPro;
 
 // ============================================================
 // ENUMS Y TIPOS DE DATOS
@@ -57,7 +58,7 @@ public class SensorData
         ButtonPressed = false;
     }
 
-    public override string ToString() => 
+    public override string ToString() =>
         $"RFID: {RFID}, Joystick: {JOYSTICK}, POT: {POT}, Button: {BUTTON}, ButtonPressed: {ButtonPressed}";
 }
 
@@ -85,6 +86,11 @@ public class ConectorArduino : MonoBehaviour
     [Header("Serial Settings")]
     public int baudRate = 9600;
     public float scanInterval = 3f;
+
+    [Header("Debug")]
+    public bool showDebug = false;
+    public GameObject debugCanvas;
+    public TMP_Text debugText;
 
     // ---- ESTADO ----
     private ArduinoState currentState = ArduinoState.Inicializando;
@@ -119,12 +125,33 @@ public class ConectorArduino : MonoBehaviour
     private void Start()
     {
         currentState = ArduinoState.Inicializando;
+
+        if (debugCanvas != null)
+        {
+            debugCanvas.SetActive(showDebug);
+        }
+
         StartCoroutine(ConnectionLoop());
     }
 
     private void OnApplicationQuit()
     {
         TryCloseSerial();
+    }
+
+    private void AppendDebugText(string message)
+    {
+        if (!showDebug || debugText == null)
+        {
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(debugText.text))
+        {
+            debugText.text += "\n";
+        }
+
+        debugText.text += message;
     }
 
     // ============================================================
@@ -162,11 +189,13 @@ public class ConectorArduino : MonoBehaviour
     private IEnumerator SearchAndConnectArduino()
     {
         Debug.Log("[ConectorArduino] Buscando puerto...");
+        AppendDebugText("[SYSTEM] Buscando puerto...");
 
         string[] ports = SerialPort.GetPortNames();
         foreach (string port in ports)
         {
             Debug.Log($"[ConectorArduino] Probando puerto: {port}");
+            AppendDebugText($"[SYSTEM] Probando puerto: {port}");
 
             SerialPort testPort = new SerialPort(port, baudRate);
             testPort.ReadTimeout = 500;
@@ -197,6 +226,7 @@ public class ConectorArduino : MonoBehaviour
                         if (line == IDENTIFICATION_MSG)
                         {
                             Debug.Log($"[ConectorArduino] Encontrado en {port}");
+                            AppendDebugText($"[RECV] {line}");
                             found = true;
 
                             // Handshake: confirmar conexión
@@ -239,6 +269,7 @@ public class ConectorArduino : MonoBehaviour
     private IEnumerator ReadDataLoop()
     {
         Debug.Log("[ConectorArduino] Iniciando lectura de datos...");
+        AppendDebugText("[SYSTEM] Iniciando lectura de datos...");
 
         while (IsConnected)
         {
@@ -247,6 +278,7 @@ public class ConectorArduino : MonoBehaviour
                 if (serial.BytesToRead > 0)
                 {
                     string rawLine = serial.ReadLine();
+                    AppendDebugText($"[RECV] {rawLine.Trim()}");
                     ProcessIncomingData(rawLine);
                 }
             }
@@ -279,7 +311,7 @@ public class ConectorArduino : MonoBehaviour
             // Actualizar datos en la estructura tipada
             sensorData.RFID = payload.RFID;
             if (!string.IsNullOrEmpty(payload.JOYSTICK))
-                sensorData.JOYSTICK = new JoystickData(payload.JOYSTICK);
+            { sensorData.JOYSTICK = new JoystickData(payload.JOYSTICK); }
             sensorData.POT = payload.POT;
             sensorData.BUTTON = payload.BUTTON;
             sensorData.ButtonPressed = payload.BUTTON == "P";
@@ -358,10 +390,12 @@ public class ConectorArduino : MonoBehaviour
             serial.WriteLine(command);
             serial.BaseStream.Flush();
             Debug.Log($"[ConectorArduino] Comando enviado: {command}");
+            AppendDebugText($"[SEND] {command}");
         }
         catch (Exception ex)
         {
             Debug.LogError($"[ConectorArduino] Error al enviar comando: {ex.Message}");
+            AppendDebugText($"[ERROR] Error al enviar comando: {ex.Message}");
         }
     }
 

@@ -2,6 +2,8 @@ using System;
 using UnityEngine;
 using GLTFast;
 using UnityEngine.UI;
+using System.Collections;
+using System.CodeDom;
 
 // ============================================================
 // ENUM Y TIPOS DE DATOS
@@ -37,6 +39,10 @@ public class ControladorFlujo : MonoBehaviour
     string lastRFIDRead = "";  // Para detectar cambios en RFID
     ParsedExperienceData currentExperienceData;
     SensorData interactionData;
+    bool isInitializingState = false;
+    bool isSwitchingState = false;
+    bool hasFragmentedModel = false;
+
 
     // ============================================================
     // CICLO DE VIDA
@@ -68,8 +74,13 @@ public class ControladorFlujo : MonoBehaviour
         if (!IsArduinoReady()) return;
         // Capturar datos desde arduino
         interactionData = ConectorArduino.Instance.GetSensorData();
-        // Procesar lógica del estado actual
-        RunCurrentStateLogic();
+
+        // Procesar lógica del estado actual mientras no esté inicializando
+        if (!isInitializingState)
+        {
+            RunCurrentStateLogic();
+        }
+
     }
 
     // ============================================================
@@ -109,8 +120,10 @@ public class ControladorFlujo : MonoBehaviour
 
     void InitializeEsperandoID()
     {
+        isInitializingState = true;
         Debug.Log("[ControladorFlujo] Inicializando estado: EsperandoID");
         lastRFIDRead = "";
+        isInitializingState = false;
     }
 
     void UpdateEsperandoID()
@@ -159,6 +172,7 @@ public class ControladorFlujo : MonoBehaviour
 
     void InitializeEsperandoInicioExperiencia()
     {
+        isInitializingState = true;
         Debug.Log("[ControladorFlujo] Inicializando estado: EsperandoInicioExperiencia");
 
         // Cargar el modelo 3D desde la ruta externa de forma asincrónica
@@ -179,10 +193,12 @@ public class ControladorFlujo : MonoBehaviour
         Button startButton = GestorInterfazPantallaInicio.Instance.BotonInicioExperiencia;
         startButton.gameObject.SetActive(true);
         startButton.onClick.AddListener(TransitionToInteraccionRuptura);
+        isInitializingState = false;
     }
     void UpdateEsperandoInicioExperiencia()
     {
-        if (interactionData.ButtonPressed){
+        if (interactionData.ButtonPressed)
+        {
             GestorInterfazPantallaInicio.Instance.BotonInicioExperiencia.onClick.Invoke();
             TransitionToInteraccionRuptura();
         }
@@ -201,39 +217,86 @@ public class ControladorFlujo : MonoBehaviour
     }
     #endregion
 
-    #region ESTADO: INTERACCIÓN Y RUPTURA (SKELETON)
+    #region ESTADO: INTERACCIÓN Y RUPTURA
 
-    private void InitializeInteraccionRuptura()
+    void InitializeInteraccionRuptura()
     {
+        isInitializingState = true;
         Debug.Log("[ControladorFlujo] Inicializando estado: InteraccionRuptura");
-        // TODO: Implementar lógica de interacción y ruptura en fase futura
-        // - Cambio de escena correspondiente
+
+        StartCoroutine(asyncGetGameObjectOfType<GestorInterfazPantallasVisor3D>((obj) =>
+        {
+            Camera camara = Camera.main;
+            // Desactivamos el movimiento de cámara -> ES TEMPORAL
+            camara.GetComponent<MovimientoCamara>().enabled = false;
+            // Instanciamos el modelo 3D
+            GameObject container = GestorInterfazPantallasVisor3D.Instance.ContenedorModelo3D;
+            if (currentExperienceData != null && !string.IsNullOrEmpty(currentExperienceData.modeloPath))
+            {
+                LoadModelAsync(container, currentExperienceData.modeloPath, () =>
+                {
+                    // Callback para cuando se instancie el modelo
+
+                    // Añadimos el script de ruptura al objeto
+                    // y configuramos el objeto
+                    GameObject model = container.transform.GetChild(0).gameObject;
+                    model.AddComponent<Rigidbody>().useGravity = false;
+                    model.AddComponent<BoxCollider>();
+                    // Utilizamos el componente Fractura puesto en el HolderModelo3D para copiarlo directamente a nuestro modelo 3D y tenerlo ya preconfigurado.
+                    container.GetComponent<Fractura>().CopyFractureComponent(model);
+                    model.GetComponent<Fractura>().CauseFracture();
+                    // Actualizamos las referencias en la cámara
+                    camara.GetComponent<MovimientoCamara>().SetObjetivo(model);
+                    //
+                    //
+                    // El movimiento de cámara se activa nuevamente mediante los CALLBACKS de la fractura del modelo.
+                    //
+                    //
+                    // Salimos de la inicialización
+                    isInitializingState = false;
+                });
+            }
+            else
+            {
+                Debug.LogError("[ControladorFlujo] No se pudo cargar el modelo 3D de la experiencia");
+            }
+        }));
     }
 
-    private void UpdateInteraccionRuptura()
+    void UpdateInteraccionRuptura()
     {
-        // TODO: Implementar lógica de actualización para InteraccionRuptura
-        // - Lectura de Joystick, Potenciómetro, Botón
-        // - Manipulación del modelo 3D
-        // - Detección de condiciones para transición a siguiente estado
+        // Si el modelo aún no ha sido roto, o ya se está cambiando de estado entonces no ejecute nada
+        if (!hasFragmentedModel || isSwitchingState) return;
+        // Iniciar la transición
+        StartCoroutine(TransitionToSecuenciaNarrativa());
     }
-
-    private void ExitInteraccionRuptura()
+    IEnumerator TransitionToSecuenciaNarrativa()
     {
-        Debug.Log("[ControladorFlujo] Saliendo del estado: InteraccionRuptura");
-    }
-
-    private void TransitionToSecuenciaNarrativa()
-    {
+        isSwitchingState = true;
         ExitInteraccionRuptura();
+        
+        // Sincronizar MANUALMENTE este tiempo con lo que tarde las interacciones que realice el asistente al ocurrir la ruptura del modelo
+        yield return new WaitForSeconds(5f);
+
+        Debug.Log("[ControladorFlujo] Transición a: SecuenciaNarrativa");
         currentState = ControllerState.SecuenciaNarrativa;
         InitializeSecuenciaNarrativa();
-        Debug.Log("[ControladorFlujo] Transición a: SecuenciaNarrativa");
 
         if (LanzadorEscenas.Instance != null)
         {
             LanzadorEscenas.Instance.cargarEscena(EscenasSistema.Narrativa);
         }
+        isSwitchingState = false;
+        yield break;
+    }
+    void ExitInteraccionRuptura()
+    {
+        Debug.Log("[ControladorFlujo] Saliendo del estado: InteraccionRuptura");
+
+        // Restaurar bandera para habilitar nuevas interacciones con LiliQuest en una única sesión (Es decir no se ha cerrado el programa).
+        hasFragmentedModel = false;
+
+        // Aquí deben ir las interacciones del asistente que se realizarán cuando ocurra la ruptura del modelo
     }
     #endregion
 
@@ -333,6 +396,10 @@ public class ControladorFlujo : MonoBehaviour
         currentState = ControllerState.EsperandoID;
         InitializeEsperandoID();
     }
+    public void SetModelFragmentedState(bool value)
+    {
+        hasFragmentedModel = value;
+    }
     #endregion
 
     #region MÉTODOS PRIVADOS
@@ -349,24 +416,36 @@ public class ControladorFlujo : MonoBehaviour
     /// <summary>
     /// Carga un modelo glTF/glB desde una ruta externa dentro de un placeholder específico.
     /// </summary>
-    private async void LoadModelAsync(GameObject placeholder, string modelPath)
+    async void LoadModelAsync(GameObject placeholder, string modelPath, Action callback = null)
     {
         Debug.Log($"[ControladorFlujo] Cargando modelo: {modelPath}");
 
         var gltf = new GltfImport();
-        GameObject container = new GameObject("Modelo3D");
-        container.transform.SetParent(placeholder.transform, false);
 
         if (await gltf.Load(new Uri(modelPath)))
         {
-            await gltf.InstantiateMainSceneAsync(container.transform);
+            await gltf.InstantiateMainSceneAsync(placeholder.transform);
             Debug.Log("[ControladorFlujo] Modelo instanciado correctamente");
         }
         else
         {
-            Destroy(container);
             Debug.LogError($"[ControladorFlujo] Fallo al cargar: {modelPath}");
         }
+
+        callback?.Invoke();
     }
+    IEnumerator asyncGetGameObjectOfType<T>(Action<T> callback) where T : UnityEngine.Object
+    {
+        T obj = null;
+
+        while (obj == null)
+        {
+            obj = GameObject.FindObjectOfType<T>();
+            yield return null;
+        }
+        // Pasamos el objeto al callback
+        callback?.Invoke(obj);
+    }
+
     #endregion
 }

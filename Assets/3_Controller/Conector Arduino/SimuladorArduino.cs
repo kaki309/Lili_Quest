@@ -3,6 +3,7 @@ using System.IO.Ports;
 using System.Collections;
 using UnityEngine;
 
+#if UNITY_EDITOR
 /// <summary>
 /// SCRIPT DE SIMULACIÓN - Simula una placa Arduino para testing del ConectorArduino
 /// 
@@ -34,7 +35,7 @@ public class SimuladorArduino : MonoBehaviour
     private bool handshakeDone = false;
     private bool handshakeSent = false;
     private string connectedPort = "";
-    
+
     // ========== DATOS ACTUALES DESDE CONECTOR ARDUINO ==========
     private ArduinoState estadoActual = ArduinoState.Inicializando;
     private bool estaConectado = false;
@@ -44,7 +45,7 @@ public class SimuladorArduino : MonoBehaviour
     private string potLeido = "";
     private string botonLeido = "";
     private bool buttonPressPending = false;
-    
+
     // ========== GUI ==========
     private string[] availablePorts = new string[0];
     private Vector2 scrollPosition = Vector2.zero;
@@ -53,8 +54,12 @@ public class SimuladorArduino : MonoBehaviour
     private string rfidInputField = "TAG_001";
     private System.Collections.Generic.List<string> messageHistory = new System.Collections.Generic.List<string>();
 
-    private void Start()
+    void Awake()
     {
+        DontDestroyOnLoad(gameObject);
+    }
+    private void Start()
+    {   
         Debug.Log("[SimuladorArduino] 🤖 Simulador de Arduino iniciado");
         RefreshAvailablePorts();
     }
@@ -66,7 +71,7 @@ public class SimuladorArduino : MonoBehaviour
         {
             estadoActual = ConectorArduino.Instance.CurrentState;
             estaConectado = ConectorArduino.Instance.IsConnected;
-            
+
             SensorData datos = ConectorArduino.Instance.GetSensorData();
             if (datos != null)
             {
@@ -80,7 +85,7 @@ public class SimuladorArduino : MonoBehaviour
 
         // ========== ESCANEAR PUERTOS PERIÓDICAMENTE ==========
         // El escaneo se realiza una sola vez en Start() o manualmente con el botón
-        
+
         // ========== MONITOREAR RESPUESTAS DE UNITY ==========
         if (isConnected && serialPort != null && serialPort.BytesToRead > 0)
         {
@@ -91,7 +96,7 @@ public class SimuladorArduino : MonoBehaviour
                 {
                     Debug.Log($"[SimuladorArduino] 📩 Recibido desde Unity: \"{line}\"");
                     statusMessage = $"Comando recibido: {line}";
-                    
+
                     // Agregar al historial de mensajes
                     messageHistory.Add($"[{System.DateTime.Now:HH:mm:ss}] {line}");
 
@@ -135,7 +140,7 @@ public class SimuladorArduino : MonoBehaviour
         // ========== COLUMNA IZQUIERDA ==========
         GUILayout.BeginArea(new Rect(10, 10, columnWidth, columnHeight));
         GUILayout.Label("═══ SIMULADOR ARDUINO ═══", new GUIStyle(GUI.skin.label) { fontSize = 14, fontStyle = FontStyle.Bold });
-        
+
         GUILayout.Space(10);
 
         // ========== SECCIÓN: CONEXIÓN ==========
@@ -144,7 +149,7 @@ public class SimuladorArduino : MonoBehaviour
         if (isConnected)
         {
             GUILayout.Label($"✓ Conectado a: {connectedPort}", new GUIStyle(GUI.skin.label) { normal = { textColor = Color.green } });
-            GUILayout.Label($"✓ Handshake: {(handshakeDone ? "✓ Completado" : (handshakeSent ? "⏳ Esperando..." : "Pendiente"))}", 
+            GUILayout.Label($"✓ Handshake: {(handshakeDone ? "✓ Completado" : (handshakeSent ? "⏳ Esperando..." : "Pendiente"))}",
                            new GUIStyle(GUI.skin.label) { normal = { textColor = handshakeDone ? Color.green : (handshakeSent ? Color.yellow : Color.red) } });
 
             GUILayout.Space(5);
@@ -161,9 +166,9 @@ public class SimuladorArduino : MonoBehaviour
             }
             else if (handshakeSent)
             {
-                GUILayout.Label("⏳ Esperando respuesta 'te encontre' desde ConectorArduino...", 
+                GUILayout.Label("⏳ Esperando respuesta 'te encontre' desde ConectorArduino...",
                                new GUIStyle(GUI.skin.label) { normal = { textColor = Color.yellow } });
-                
+
                 if (GUILayout.Button("🔄 Reintentar Handshake", GUILayout.Height(30)))
                 {
                     handshakeSent = false;
@@ -181,7 +186,7 @@ public class SimuladorArduino : MonoBehaviour
         else
         {
             GUILayout.Label("Puertos disponibles:", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
-            
+
             if (availablePorts.Length == 0)
             {
                 GUILayout.Label("⚠️ No hay puertos disponibles", new GUIStyle(GUI.skin.label) { normal = { textColor = Color.red } });
@@ -189,7 +194,7 @@ public class SimuladorArduino : MonoBehaviour
             else
             {
                 scrollPosition = GUILayout.BeginScrollView(scrollPosition, GUILayout.Height(150));
-                
+
                 foreach (string port in availablePorts)
                 {
                     if (GUILayout.Button($"🔌 {port}", GUILayout.Height(30)))
@@ -197,7 +202,7 @@ public class SimuladorArduino : MonoBehaviour
                         ConnectToPort(port);
                     }
                 }
-                
+
                 GUILayout.EndScrollView();
             }
 
@@ -213,7 +218,7 @@ public class SimuladorArduino : MonoBehaviour
         // ========== SECCIÓN: ESTADO ==========
         GUILayout.Label("─── ConectorArduino ───", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
         GUILayout.Label($"Estado: {estadoActual}");
-        GUILayout.Label($"Conectado a Unity: {(estaConectado ? "✓ Sí" : "✗ No")}", 
+        GUILayout.Label($"Conectado a Unity: {(estaConectado ? "✓ Sí" : "✗ No")}",
                        new GUIStyle(GUI.skin.label) { normal = { textColor = estaConectado ? Color.green : Color.red } });
 
         GUILayout.Space(10);
@@ -231,11 +236,11 @@ public class SimuladorArduino : MonoBehaviour
         if (handshakeDone)
         {
             GUILayout.Label("─── ENVÍO DE DATOS ───", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
-            
+
             // Envío de RFID
             GUILayout.Label("RFID a enviar:", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
             rfidInputField = GUILayout.TextField(rfidInputField, GUILayout.Height(25));
-            
+
             if (GUILayout.Button($"📤 Enviar RFID: {rfidInputField}", GUILayout.Height(30)))
             {
                 SendRFIDData(rfidInputField);
@@ -256,7 +261,7 @@ public class SimuladorArduino : MonoBehaviour
 
             // Solicitar cambios de estado usando API pública de ConectorArduino
             GUILayout.Label("Cambiar Estado:", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
-            
+
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("🔄 RFID", GUILayout.Height(30)))
             {
@@ -282,12 +287,12 @@ public class SimuladorArduino : MonoBehaviour
         // ========== COLUMNA DERECHA: HISTORIAL ==========
         GUILayout.BeginArea(new Rect(10 + columnWidth + 10, 10, columnWidth, columnHeight));
         GUILayout.Label("═══ Mensajes recibidos por serial ═══", new GUIStyle(GUI.skin.label) { fontSize = 14, fontStyle = FontStyle.Bold });
-        
+
         GUILayout.Space(10);
 
         // Panel de historial scrollable
         historyScrollPosition = GUILayout.BeginScrollView(historyScrollPosition);
-        
+
         if (messageHistory.Count == 0)
         {
             GUILayout.Label("Sin mensajes recibidos aún", new GUIStyle(GUI.skin.label) { normal = { textColor = Color.gray } });
@@ -299,7 +304,7 @@ public class SimuladorArduino : MonoBehaviour
                 GUILayout.Label(message, new GUIStyle(GUI.skin.label) { wordWrap = true, fontSize = 10 });
             }
         }
-        
+
         GUILayout.EndScrollView();
 
         GUILayout.Space(5);
@@ -355,7 +360,7 @@ public class SimuladorArduino : MonoBehaviour
             serialPort.ReadTimeout = 1000;
             serialPort.WriteTimeout = 1000;
             serialPort.NewLine = "\n";
-            
+
             serialPort.Open();
             isConnected = true;
             connectedPort = port;
@@ -541,3 +546,4 @@ public class SimuladorArduino : MonoBehaviour
         return "S";
     }
 }
+#endif
