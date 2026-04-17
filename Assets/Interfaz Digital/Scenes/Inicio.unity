@@ -1731,7 +1731,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   baudRate: 9600
   scanInterval: 3
-  showDebug: 1
+  showDebug: 0
   debugCanvas: {fileID: 358242792}
   debugText: {fileID: 308286073}
 --- !u!4 &1826888595
