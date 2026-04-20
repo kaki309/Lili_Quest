@@ -9,7 +9,6 @@ using UnityEngine;
 
 
 public class Fractura : MonoBehaviour
-
 {
     public FractureOptions fractureOptions;
     public RefractureOptions refractureOptions;

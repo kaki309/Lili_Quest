@@ -289,7 +289,7 @@ MonoBehaviour:
     zAxis: 1
     detectFloatingFragments: 0
     asynchronous: 0
-    insideMaterial: {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
+    insideMaterial: {fileID: 2100000, guid: a866cd540fe532342adcd3a5ff6cd98e, type: 2}
     textureScale: {x: 1, y: 1}
     textureOffset: {x: 0, y: 0}
   refractureOptions:
@@ -531,7 +531,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _contenedorModelo3D: {fileID: 63228358}
-  _recuadroLaia: {fileID: 0}
+  _recuadroLaia: {fileID: 462382427}
   audioSource: {fileID: 27170490}
 --- !u!1 &649765951
 GameObject:

@@ -209,9 +209,9 @@ public class ControladorFlujo : MonoBehaviour
     {
         ExitEsperandoInicioExperiencia();
         currentState = ControllerState.InteraccionRuptura;
-        InitializeInteraccionRuptura();
         Debug.Log("[ControladorFlujo] Transición a: InteraccionRuptura");
-        LanzadorEscenas.Instance.cargarEscena(EscenasSistema.Visor3D);
+        LanzadorEscenas.Instance.cargarEscenaYEjecutar(EscenasSistema.Visor3D, (onDone) => InitializeInteraccionRuptura(onDone));
+        //InitializeInteraccionRuptura();
     }
     void ExitEsperandoInicioExperiencia()
     {
@@ -220,7 +220,7 @@ public class ControladorFlujo : MonoBehaviour
     #endregion
 
     #region ESTADO: INTERACCIÓN Y RUPTURA
-    void InitializeInteraccionRuptura()
+    void InitializeInteraccionRuptura(Action onDone = null)
     {
         isInitializingState = true;
         Debug.Log("[ControladorFlujo] Inicializando estado: InteraccionRuptura");
@@ -254,6 +254,7 @@ public class ControladorFlujo : MonoBehaviour
                     //
                     //
                     // Salimos de la inicialización
+                    onDone?.Invoke();
                     isInitializingState = false;
                 });
             }

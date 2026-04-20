@@ -14,4 +14,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Interfaz Digital/Scenes/Narrativa.unity
     guid: 95238ba7407173e4a91e84ab36a83ef6
+  - enabled: 1
+    path: Assets/Interfaz Digital/Scenes/LoadingScene.unity
+    guid: fc0652f5170d9384c8a3edcd41cdeeac
   m_configObjects: {}
