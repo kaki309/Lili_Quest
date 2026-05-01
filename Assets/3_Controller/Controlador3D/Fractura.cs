@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 
@@ -132,7 +130,8 @@ public class Fractura : MonoBehaviour
                 GameObject.Destroy(fragmentTemplate);
 
                 // Deactivate the original object
-                this.gameObject.SetActive(false);
+                // this.gameObject.SetActive(false);
+                this.fragmentRoot.SetActive(false);
 
                 // Fire the completion callback
                 if ((this.currentRefractureCount == 0) ||
@@ -213,7 +212,9 @@ public class Fractura : MonoBehaviour
 
     public void ApplyExplosionForce()
     {
-        foreach (Transform fragment in fragmentRoot.transform)
+        this.fragmentRoot.SetActive(true);
+        this.gameObject.SetActive(false);
+        foreach (Transform fragment in this.fragmentRoot.transform)
         {
             Rigidbody rb = fragment.GetComponent<Rigidbody>();
             if (rb != null)

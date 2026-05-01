@@ -294,6 +294,7 @@ public class ControladorFlujo : MonoBehaviour
 
         // TODO
         // Aquí deben ir las interacciones del asistente que se realizarán cuando ocurra la ruptura del modelo
+        yield return new WaitForSeconds(3);
 
         // Restaurar bandera para habilitar nuevas interacciones con Lili Quest en una única sesión
         // (Es decir sin cerrar el programa)
