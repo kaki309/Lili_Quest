@@ -6,7 +6,6 @@ public class ControladorNarrativa : MonoBehaviour
 {
     GestorInterfazPantallaNarrativa UI;
     bool isPlayingSecuence = false;
-    bool hasStartedExit = false;
     bool isAnsweringTrivia = false;
     [Header("Sonidos del sistema")]
     [SerializeField] AudioClip respuestaCorrecta;
@@ -17,23 +16,17 @@ public class ControladorNarrativa : MonoBehaviour
     {
         UI = GestorInterfazPantallaNarrativa.Instance;
         TurnOffEveryUIElement();
-        StartCoroutine(simularSecuencua());
+        StartCoroutine(SimularSecuencia());
     }
     void TurnOffEveryUIElement()
     {
         UI.Foto.SetActive(false);
-        UI.Subtitulo.gameObject.SetActive(false);
         UI.CanvasTrivia.SetActive(false);
-        UI.LaiaNarrator.gameObject.SetActive(false);
     }
-    void Update()
-    {
-        if (isPlayingSecuence || hasStartedExit) return;
-        finishSecuence();
-    }
-    IEnumerator simularSecuencua()
-    {
+    IEnumerator SimularSecuencia()
+    {   
         isPlayingSecuence = true;
+        ControladorAsistente asistente = ControladorAsistente.Instance;
 
         yield return new WaitForSeconds(3);
 
@@ -43,26 +36,26 @@ public class ControladorNarrativa : MonoBehaviour
 
         UI.Foto.SetActive(false);
 
-        UI.LaiaNarrator.gameObject.SetActive(true);
-        UI.Subtitulo.gameObject.SetActive(true);
+        asistente.SetExpresion(ExpresionesAsistente.Feliz);
+        asistente.PlayDialog(laiaFelicitacion, "Primer texto de la narrativa");
+        yield return new WaitForSeconds(laiaFelicitacion.length);
+        asistente.HideExpresion();
 
-        yield return new WaitForSeconds(4);
+        yield return new WaitForSeconds(3);
 
-        UI.Subtitulo.gameObject.SetActive(false);
-        UI.LaiaNarrator.gameObject.SetActive(false);
         UI.CanvasTrivia.SetActive(true);
 
         isAnsweringTrivia = true;
+        // Esta variable se cancela desde los botones de la trivia
         while (isAnsweringTrivia) yield return null;
 
         UI.CanvasTrivia.SetActive(false);
 
         isPlayingSecuence = false;
-        yield break;
+        finishSecuence();
     }
     void finishSecuence()
     {
-        hasStartedExit = true;
         ControladorFlujo.Instance.finishNarrativaState();
     }
     public void answerTriviaCorrectly()

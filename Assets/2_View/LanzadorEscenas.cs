@@ -34,6 +34,18 @@ public class LanzadorEscenas : MonoBehaviour
     {
         StartCoroutine(LoadLoadingScene((int)escena));
     }
+    /// <summary>
+    /// Carga una escena activando la pantalla de carga.
+    /// Se debe pasar un Action de la manera (onDone) => suMetodo(onDone) al método que quiere ejecutar luego de cargar la escena, e invocar el callback al final de su método para desactivar la pantalla de carga.
+    /// <br/>
+    /// Ejemplo:<br/>
+    /// (onDone) => suMetodo(onDone)<br/>
+    /// <br/>
+    /// suMetodo(Action onDone){<br/>
+    ///     // Su código<br/>
+    ///     onDone?.Invoke();<br/>
+    /// }<br/>
+    /// </summary>
     public void cargarEscenaYEjecutar(EscenasSistema escena, Action<Action> callback)
     {
         StartCoroutine(LoadLoadingScene((int)escena, callback));
@@ -52,7 +64,7 @@ public class LanzadorEscenas : MonoBehaviour
             loader = FindObjectOfType<LoadingSceneController>();
             yield return null;
         }
-        
+
         loader.SetSceneAndStartLoad(sceneNumber, callback);
         yield break;
     }

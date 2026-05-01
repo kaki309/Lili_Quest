@@ -51,7 +51,7 @@ public class SimuladorArduino : MonoBehaviour
     private Vector2 scrollPosition = Vector2.zero;
     private Vector2 historyScrollPosition = Vector2.zero;
     private string statusMessage = "Iniciando...";
-    private string rfidInputField = "TAG_001";
+    private string rfidInputField = "77579063";
     private System.Collections.Generic.List<string> messageHistory = new System.Collections.Generic.List<string>();
 
     void Awake()

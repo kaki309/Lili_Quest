@@ -254,8 +254,7 @@ public class ControladorFlujo : MonoBehaviour
         if (!DoesCurrentExperienceModelExists()) yield break;
 
         // Esperamos que el gestor de interfaz esté creado en escena
-        waitForObjectToBeOnScene<GestorInterfazPantallasVisor3D>();
-        while (isFlowPaused) yield return null;
+        yield return StartCoroutine(waitForObjectToBeOnScene<GestorInterfazPantallasVisor3D>());
 
         // Desactivamos el movimiento de cámara -> ES TEMPORAL
         MovimientoCamara camara = Camera.main.GetComponent<MovimientoCamara>();
@@ -296,12 +295,13 @@ public class ControladorFlujo : MonoBehaviour
     IEnumerator TransitionToSecuenciaNarrativa()
     {
         isSwitchingState = true;
-        StartCoroutine(ExitInteraccionRuptura());
-        while (isFlowPaused) yield return null;
+
+        // Ejecutamos corrutina de salida y esperamos su terminación (por el yield return)
+        yield return StartCoroutine(ExitInteraccionRuptura());
 
         Debug.Log("[ControladorFlujo] Transición a: SecuenciaNarrativa");
         currentState = ControllerState.SecuenciaNarrativa;
-        InitializeSecuenciaNarrativa();
+        StartCoroutine(InitializeSecuenciaNarrativa());
 
         if (LanzadorEscenas.Instance != null)
         {
@@ -311,21 +311,14 @@ public class ControladorFlujo : MonoBehaviour
     }
     IEnumerator ExitInteraccionRuptura()
     {
-        isFlowPaused = true;
         Debug.Log("[ControladorFlujo] Saliendo del estado: InteraccionRuptura");
 
-        // TODO
-        // Aquí deben ir las interacciones del asistente que se realizarán cuando ocurra la ruptura del modelo
-        yield return new WaitForSeconds(3);
+        // Secuencia de asistente
+        yield return ControladorAsistente.Instance.ExecuteSequence(SecuenciasDelSistema.RupturaModelo);
 
         // Restaurar bandera para habilitar nuevas interacciones con Lili Quest en una única sesión
         // (Es decir sin cerrar el programa)
         hasFragmentedModel = false;
-
-        // Reanudamos el flujo del sistema
-        isFlowPaused = false;
-
-        yield break;
     }
     #endregion
 
@@ -334,11 +327,13 @@ public class ControladorFlujo : MonoBehaviour
     // ============================================================
     #region ESTADO: SECUENCIA NARRATIVA 
 
-    void InitializeSecuenciaNarrativa()
+    IEnumerator InitializeSecuenciaNarrativa()
     {
+        isInitializingState = true;
         Debug.Log("[ControladorFlujo] Inicializando estado: SecuenciaNarrativa");
-        // TODO: Implementar lógica de narrativa en fase futura
-        // - Cambio de escena correspondiente
+
+        yield return StartCoroutine(waitForObjectToBeOnScene<GestorInterfazPantallaNarrativa>());
+        isInitializingState = false;
     }
 
     void UpdateSecuenciaNarrativa()
@@ -378,8 +373,7 @@ public class ControladorFlujo : MonoBehaviour
         if (!DoesCurrentExperienceModelExists()) yield break;
 
         // Esperamos que el gestor de interfaz esté creado en escena
-        waitForObjectToBeOnScene<GestorInterfazPantallasVisor3D>();
-        while (isFlowPaused) yield return null;
+        yield return StartCoroutine(waitForObjectToBeOnScene<GestorInterfazPantallasVisor3D>());
 
         // Activamos el movimiento de cámara y desactivamos ruptura de modelo
         MovimientoCamara camara = Camera.main.GetComponent<MovimientoCamara>();
@@ -448,7 +442,7 @@ public class ControladorFlujo : MonoBehaviour
 
     /// <summary>
     /// Carga un modelo glTF/glB desde una ruta externa dentro de un placeholder específico.
-    /// También establece el flujo del sistema como PAUSADO mediante la variable isFlowPaused.
+    /// También establece el flujo del sistema como PAUSADO mediante la variable isFlowPaused hasta que el modelo se ha instanciado.
     /// </summary>
     async void LoadModelAsync(GameObject placeholder, string modelPath)
     {
@@ -472,15 +466,13 @@ public class ControladorFlujo : MonoBehaviour
 
     /// <summary>
     /// Inicia una corutina que busca constantemente un objeto en escena según el tipo pasado.
-    /// Al inicio de la búsqueda, establece el flujo del sistema como PAUSADO usando la variable isFlowPaused, y la reestablece al terminar la búsqueda.
     /// </summary>
-    void waitForObjectToBeOnScene<T>() where T : UnityEngine.Object
+    IEnumerator waitForObjectToBeOnScene<T>() where T : UnityEngine.Object
     {
-        StartCoroutine(searchObject<T>());
+        yield return StartCoroutine(searchObject<T>());
     }
     IEnumerator searchObject<T>() where T : UnityEngine.Object
     {
-        isFlowPaused = true;
         T obj = null;
 
         while (obj == null)
@@ -488,7 +480,6 @@ public class ControladorFlujo : MonoBehaviour
             obj = GameObject.FindObjectOfType<T>();
             yield return null;
         }
-        isFlowPaused = false;
     }
 
     bool DoesCurrentExperienceModelExists()
