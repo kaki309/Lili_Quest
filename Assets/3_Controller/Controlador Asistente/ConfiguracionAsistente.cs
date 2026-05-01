@@ -19,13 +19,17 @@ public class ConfiguracionAsistente : MonoBehaviour
 
     private void Awake()
     {
+        // Implementar Singleton
         if (Instance != null && Instance != this)
         {
+            Debug.Log("[ConfiguraciónAsistente] Instancia ya existe. Destruyendo duplicado.");
             Destroy(gameObject);
             return;
         }
 
         Instance = this;
+        DontDestroyOnLoad(gameObject);
+        Debug.Log("[ConfiguraciónAsistente] Singleton inicializado.");
     }
 
     #endregion
@@ -76,7 +80,7 @@ public class ConfiguracionAsistente : MonoBehaviour
 
     #endregion
 
-    #region Secuencias
+    #region Secuencias Del Sistema
 
     private IEnumerator RupturaModeloCoroutine()
     {
@@ -96,9 +100,9 @@ public class ConfiguracionAsistente : MonoBehaviour
         // Paso 2: Cambiar a expresión preocupada (cambio instantáneo) y reproducir siguiente audio
         controlador.SetExpresion(ExpresionesAsistente.Feliz);
         controlador.PlayDialog(audioPrueba, "LA SEGUNDA TIENE LA FUNDA");
-        yield return new WaitForSeconds(audioPrueba.length/2);
+        yield return new WaitForSeconds(audioPrueba.length / 2);
         controlador.SetExpresion(ExpresionesAsistente.Preocupado);
-        yield return new WaitForSeconds(audioPrueba.length/2 + 1f);
+        yield return new WaitForSeconds(audioPrueba.length / 2 + 1f);
 
         // Paso 3: Cambiar a expresión feliz y reproducir último audio
         controlador.SetExpresion(ExpresionesAsistente.Feliz);

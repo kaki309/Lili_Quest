@@ -28,13 +28,6 @@ public class ControladorAsistente : MonoBehaviour
 
     private void Awake()
     {
-        // Singleton pattern (reiniciable por escena)
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
         Instance = this;
     }
 
@@ -174,7 +167,7 @@ public class ControladorAsistente : MonoBehaviour
             audioSourceAsistente = GetComponent<AudioSource>();
             if (audioSourceAsistente == null)
             {
-                Debug.LogWarning("[ControladorAsistente] audioSourceAsistente no encontrada. Se creará una nueva.");
+                Debug.LogWarning("[ControladorAsistente] audioSource no encontrado. Se creará uno nuevo.");
                 audioSourceAsistente = gameObject.AddComponent<AudioSource>();
             }
         }
