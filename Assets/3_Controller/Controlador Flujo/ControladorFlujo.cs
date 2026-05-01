@@ -42,6 +42,7 @@ public class ControladorFlujo : MonoBehaviour
     bool isSwitchingState = false;
     bool hasFragmentedModel = false;
     bool isFlowPaused = false;
+    bool isWaitingForArduino = false;
 
 
     // ============================================================
@@ -70,8 +71,14 @@ public class ControladorFlujo : MonoBehaviour
     void Update()
     {
         // Verificar que Arduino está listo
-        // No procesar si Arduino no está conectado
-        if (!IsArduinoReady()) return;
+        if (!IsArduinoReady())
+        {
+            // Si no está listo iniciar una corrutina que espera hasta que lo encuentra
+            // Y cambia el estado de la UI de pantalla principal
+            if (!isWaitingForArduino) StartCoroutine(waitForArduino());
+            return;
+        }
+
         // Capturar datos desde arduino
         interactionData = ConectorArduino.Instance.GetSensorData();
 
@@ -118,6 +125,21 @@ public class ControladorFlujo : MonoBehaviour
         }
     }
 
+    // ============================================================
+    // PREVIO A ESTADOS
+    // ============================================================
+    #region PREVIO A ESTADOS
+    IEnumerator waitForArduino()
+    {
+        isWaitingForArduino = true;
+
+        while (!IsArduinoReady()) yield return null;
+
+        GestorInterfazPantallaInicio.Instance.textoEsperandoControles.SetActive(false);
+        GestorInterfazPantallaInicio.Instance.textoEsperandoLectura.SetActive(true);
+        isWaitingForArduino = false;
+    }
+    #endregion
 
     // ============================================================
     // ESTADO: ESPERANDO ID
