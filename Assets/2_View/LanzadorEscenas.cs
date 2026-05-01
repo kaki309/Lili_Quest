@@ -34,7 +34,7 @@ public class LanzadorEscenas : MonoBehaviour
     {
         StartCoroutine(LoadLoadingScene((int)escena));
     }
-    public void cargarEscenaYEjecutar(EscenasSistema escena, Action<Action> callback = null)
+    public void cargarEscenaYEjecutar(EscenasSistema escena, Action<Action> callback)
     {
         StartCoroutine(LoadLoadingScene((int)escena, callback));
     }
@@ -42,7 +42,7 @@ public class LanzadorEscenas : MonoBehaviour
     // Coroutine
     IEnumerator LoadLoadingScene(int sceneNumber, Action<Action> callback = null)
     {
-        // Load the loading scene in English
+        // Load the loading scene
         SceneManager.LoadScene(loadingSceneIndex);
 
         // Find the loading controller
@@ -52,15 +52,8 @@ public class LanzadorEscenas : MonoBehaviour
             loader = FindObjectOfType<LoadingSceneController>();
             yield return null;
         }
-
-        if (loader != null)
-        {
-            loader.SetSceneAndStartLoad(sceneNumber, callback);
-        }
-        else
-        {
-            Debug.LogError("LoadingSceneController not found!");
-        }
+        
+        loader.SetSceneAndStartLoad(sceneNumber, callback);
         yield break;
     }
 }

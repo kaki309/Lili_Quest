@@ -3,7 +3,6 @@ using UnityEngine;
 using GLTFast;
 using UnityEngine.UI;
 using System.Collections;
-using System.CodeDom;
 
 // ============================================================
 // ENUM Y TIPOS DE DATOS
@@ -42,6 +41,7 @@ public class ControladorFlujo : MonoBehaviour
     bool isInitializingState = false;
     bool isSwitchingState = false;
     bool hasFragmentedModel = false;
+    bool isFlowPaused = false;
 
 
     // ============================================================
@@ -118,6 +118,10 @@ public class ControladorFlujo : MonoBehaviour
         }
     }
 
+
+    // ============================================================
+    // ESTADO: ESPERANDO ID
+    // ============================================================
     #region ESTADO: ESPERANDO ID
 
     void InitializeEsperandoID()
@@ -170,6 +174,9 @@ public class ControladorFlujo : MonoBehaviour
     }
     #endregion
 
+    // ============================================================
+    // ESTADO: ESPERANDO INICIO EXPERIENCIA
+    // ============================================================
     #region ESTADO: ESPERANDO INICIO EXPERIENCIA
 
     void InitializeEsperandoInicioExperiencia()
@@ -177,16 +184,11 @@ public class ControladorFlujo : MonoBehaviour
         isInitializingState = true;
         Debug.Log("[ControladorFlujo] Inicializando estado: EsperandoInicioExperiencia");
 
+        if (!DoesCurrentExperienceModelExists()) return;
+
         // Cargar el modelo 3D desde la ruta externa de forma asincrónica
         GameObject container = GestorInterfazPantallaInicio.Instance.ContenedorModelo3D;
-        if (currentExperienceData != null && !string.IsNullOrEmpty(currentExperienceData.modeloPath))
-        {
-            LoadModelAsync(container, currentExperienceData.modeloPath);
-        }
-        else
-        {
-            Debug.LogError("[ControladorFlujo] No se pudo cargar el modelo 3D de la experiencia");
-        }
+        LoadModelAsync(container, currentExperienceData.modeloPath);
 
         // Desactivar texto de espera de lectura
         GestorInterfazPantallaInicio.Instance.textoEsperandoLectura.SetActive(false);
@@ -210,8 +212,7 @@ public class ControladorFlujo : MonoBehaviour
         ExitEsperandoInicioExperiencia();
         currentState = ControllerState.InteraccionRuptura;
         Debug.Log("[ControladorFlujo] Transición a: InteraccionRuptura");
-        LanzadorEscenas.Instance.cargarEscenaYEjecutar(EscenasSistema.Visor3D, (onDone) => InitializeInteraccionRuptura(onDone));
-        //InitializeInteraccionRuptura();
+        LanzadorEscenas.Instance.cargarEscenaYEjecutar(EscenasSistema.Visor3D, (onDone) => StartCoroutine(InitializeInteraccionRuptura(onDone)));
     }
     void ExitEsperandoInicioExperiencia()
     {
@@ -219,52 +220,50 @@ public class ControladorFlujo : MonoBehaviour
     }
     #endregion
 
+    // ============================================================
+    // ESTADO: INTERACCIÓN Y RUPTURA
+    // ============================================================
     #region ESTADO: INTERACCIÓN Y RUPTURA
-    void InitializeInteraccionRuptura(Action onDone = null)
+    IEnumerator InitializeInteraccionRuptura(Action onDone)
     {
         isInitializingState = true;
         Debug.Log("[ControladorFlujo] Inicializando estado: InteraccionRuptura");
 
-        StartCoroutine(asyncGetGameObjectOfType<GestorInterfazPantallasVisor3D>((obj) =>
-        {
-            Camera camara = Camera.main;
-            // Desactivamos el movimiento de cámara -> ES TEMPORAL
-            camara.GetComponent<MovimientoCamara>().enabled = false;
-            // Instanciamos el modelo 3D
-            GameObject container = GestorInterfazPantallasVisor3D.Instance.ContenedorModelo3D;
-            if (currentExperienceData != null && !string.IsNullOrEmpty(currentExperienceData.modeloPath))
-            {
-                LoadModelAsync(container, currentExperienceData.modeloPath, () =>
-                {
-                    // Callback para cuando se instancie el modelo
+        if (!DoesCurrentExperienceModelExists()) yield break;
 
-                    // Añadimos el script de ruptura al objeto
-                    // y configuramos el objeto
-                    GameObject model = container.transform.GetChild(0).gameObject;
-                    model.AddComponent<Rigidbody>().useGravity = false;
-                    model.AddComponent<BoxCollider>();
-                    // Utilizamos el componente Fractura puesto en el HolderModelo3D para copiarlo directamente a nuestro modelo 3D y tenerlo ya preconfigurado.
-                    container.GetComponent<Fractura>().CopyFractureComponent(model);
-                    model.GetComponent<Fractura>().CauseFracture();
-                    // Actualizamos las referencias en la cámara
-                    camara.GetComponent<MovimientoCamara>().SetObjetivo(model);
-                    //
-                    //
-                    // El movimiento de cámara se activa nuevamente mediante los CALLBACKS de la fractura del modelo.
-                    //
-                    //
-                    // Salimos de la inicialización
-                    onDone?.Invoke();
-                    isInitializingState = false;
-                });
-            }
-            else
-            {
-                Debug.LogError("[ControladorFlujo] No se pudo cargar el modelo 3D de la experiencia");
-            }
-        }));
+        // Esperamos que el gestor de interfaz esté creado en escena
+        waitForObjectToBeOnScene<GestorInterfazPantallasVisor3D>();
+        while (isFlowPaused) yield return null;
+
+        // Desactivamos el movimiento de cámara -> ES TEMPORAL
+        MovimientoCamara camara = Camera.main.GetComponent<MovimientoCamara>();
+        camara.enabled = false;
+
+        // Instanciamos el modelo 3D
+        GameObject container = GestorInterfazPantallasVisor3D.Instance.ContenedorModelo3D;
+        LoadModelAsync(container, currentExperienceData.modeloPath);
+        while (isFlowPaused) yield return null;
+
+        // Añadimos el script de ruptura al objeto instanciado y lo configuramos
+        GameObject model = container.transform.GetChild(0).gameObject;
+        model.AddComponent<Rigidbody>().useGravity = false;
+        model.AddComponent<BoxCollider>();
+        // Utilizamos el componente Fractura puesto en el contenedor que ya está previamente configurado con las opciones de ruptura, y lo copiamos directamente a nuestro modelo 3D
+        container.GetComponent<Fractura>().CopyFractureComponent(model);
+        // Generamos las fracturas
+        model.GetComponent<Fractura>().CauseFracture();
+        // Actualizamos las referencias en la cámara
+        camara.SetObjetivo(model);
+
+        //
+        // El movimiento de cámara se activa nuevamente mediante los CALLBACKS de la fractura del modelo.
+        //
+
+        // Avisamos a la pantalla de carga que ya terminó el proceso
+        onDone?.Invoke();
+
+        isInitializingState = false;
     }
-
     void UpdateInteraccionRuptura()
     {
         // Si el modelo aún no ha sido roto, o ya se está cambiando de estado entonces no ejecute nada
@@ -275,10 +274,8 @@ public class ControladorFlujo : MonoBehaviour
     IEnumerator TransitionToSecuenciaNarrativa()
     {
         isSwitchingState = true;
-        ExitInteraccionRuptura();
-
-        // Sincronizar MANUALMENTE este tiempo con lo que tarde las interacciones que realice el asistente al ocurrir la ruptura del modelo
-        yield return new WaitForSeconds(5f);
+        StartCoroutine(ExitInteraccionRuptura());
+        while (isFlowPaused) yield return null;
 
         Debug.Log("[ControladorFlujo] Transición a: SecuenciaNarrativa");
         currentState = ControllerState.SecuenciaNarrativa;
@@ -289,40 +286,50 @@ public class ControladorFlujo : MonoBehaviour
             LanzadorEscenas.Instance.cargarEscena(EscenasSistema.Narrativa);
         }
         isSwitchingState = false;
-        yield break;
     }
-    void ExitInteraccionRuptura()
+    IEnumerator ExitInteraccionRuptura()
     {
+        isFlowPaused = true;
         Debug.Log("[ControladorFlujo] Saliendo del estado: InteraccionRuptura");
 
-        // Restaurar bandera para habilitar nuevas interacciones con LiliQuest en una única sesión (Es decir no se ha cerrado el programa).
+        // TODO
+        // Aquí deben ir las interacciones del asistente que se realizarán cuando ocurra la ruptura del modelo
+
+        // Restaurar bandera para habilitar nuevas interacciones con Lili Quest en una única sesión
+        // (Es decir sin cerrar el programa)
         hasFragmentedModel = false;
 
-        // Aquí deben ir las interacciones del asistente que se realizarán cuando ocurra la ruptura del modelo
+        // Reanudamos el flujo del sistema
+        isFlowPaused = false;
+
+        yield break;
     }
     #endregion
 
+    // ============================================================
+    // ESTADO: SECUENCIA NARRATIVA 
+    // ============================================================
     #region ESTADO: SECUENCIA NARRATIVA 
 
-    private void InitializeSecuenciaNarrativa()
+    void InitializeSecuenciaNarrativa()
     {
         Debug.Log("[ControladorFlujo] Inicializando estado: SecuenciaNarrativa");
         // TODO: Implementar lógica de narrativa en fase futura
         // - Cambio de escena correspondiente
     }
 
-    private void UpdateSecuenciaNarrativa()
+    void UpdateSecuenciaNarrativa()
     {
         // TODO: Implementar lógica de actualización para SecuenciaNarrativa
         // - Presentación de contenido histórico
         // - Reprodución de diálogos del asistente
         // - Detección de fin de secuencia
     }
-    private void TransitionToVisor3D()
+    void TransitionToVisor3D()
     {
         ExitSecuenciaNarrativa();
         currentState = ControllerState.Visor3D;
-        InitializeVisor3D();
+        StartCoroutine(InitializeVisor3D());
         Debug.Log("[ControladorFlujo] Transición a: Visor3D");
 
         if (LanzadorEscenas.Instance != null)
@@ -330,46 +337,44 @@ public class ControladorFlujo : MonoBehaviour
             LanzadorEscenas.Instance.cargarEscena(EscenasSistema.Visor3D);
         }
     }
-    private void ExitSecuenciaNarrativa()
+    void ExitSecuenciaNarrativa()
     {
         Debug.Log("[ControladorFlujo] Saliendo del estado: SecuenciaNarrativa");
     }
     #endregion
 
+    // ============================================================
+    // ESTADO: VISOR 3D 
+    // ============================================================
     #region ESTADO: VISOR 3D 
-
-    private void InitializeVisor3D()
+    IEnumerator InitializeVisor3D()
     {
         isInitializingState = true;
         Debug.Log("[ControladorFlujo] Inicializando estado: Visor3D");
 
-        StartCoroutine(asyncGetGameObjectOfType<GestorInterfazPantallasVisor3D>((obj) =>
-        {
-            Camera camara = Camera.main;
-            // Activamos el movimiento de cámara y desactivamos ruptura de modelo
-            camara.GetComponent<MovimientoCamara>().enabled = true;
-            camara.GetComponent<MovimientoCamara>().activateFracture = false;
-            // Instanciamos el modelo 3D
-            GameObject container = GestorInterfazPantallasVisor3D.Instance.ContenedorModelo3D;
-            if (currentExperienceData != null && !string.IsNullOrEmpty(currentExperienceData.modeloPath))
-            {
-                LoadModelAsync(container, currentExperienceData.modeloPath, () =>
-                {
-                    // Callback para cuando se instancie el modelo
+        if (!DoesCurrentExperienceModelExists()) yield break;
 
-                    // Obtenemos el modelo instanciado
-                    GameObject model = container.transform.GetChild(0).gameObject;
-                    // Actualizamos la referencia en la cámara
-                    camara.GetComponent<MovimientoCamara>().SetObjetivo(model);
-                    // Salimos de la inicialización
-                    isInitializingState = false;
-                });
-            }
-            else
-            {
-                Debug.LogError("[ControladorFlujo] No se pudo cargar el modelo 3D de la experiencia");
-            }
-        }));
+        // Esperamos que el gestor de interfaz esté creado en escena
+        waitForObjectToBeOnScene<GestorInterfazPantallasVisor3D>();
+        while (isFlowPaused) yield return null;
+
+        // Activamos el movimiento de cámara y desactivamos ruptura de modelo
+        MovimientoCamara camara = Camera.main.GetComponent<MovimientoCamara>();
+        camara.enabled = true;
+        camara.activateFracture = false;
+
+        // Instanciamos el modelo 3D
+        GameObject container = GestorInterfazPantallasVisor3D.Instance.ContenedorModelo3D;
+        LoadModelAsync(container, currentExperienceData.modeloPath);
+        while (isFlowPaused) yield return null;
+
+        // Obtenemos el modelo instanciado
+        GameObject model = container.transform.GetChild(0).gameObject;
+        // Actualizamos la referencia en la cámara
+        camara.GetComponent<MovimientoCamara>().SetObjetivo(model);
+        // Salimos de la inicialización
+        isInitializingState = false;
+        yield break;
     }
 
     private void UpdateVisor3D()
@@ -383,48 +388,11 @@ public class ControladorFlujo : MonoBehaviour
     }
     #endregion
 
+
+    // ============================================================
+    // MÉTODOS PÚBLICOS
+    // ============================================================
     #region MÉTODOS PÚBLICOS
-
-    /// <summary>
-    /// Reset abruptos: Vuelve al estado inicial y reinicia Arduino a lectura de RFID
-    /// Puede ser llamado por cualquier controlador (menú, pausas de emergencia, etc.)
-    /// </summary>
-    public void ResetToStartState()
-    {
-        Debug.Log("[ControladorFlujo] Reset abrupto a EsperandoID. Reiniciando flujo...");
-
-        if (currentState == ControllerState.EsperandoID) return;
-
-        // Salir del estado actual
-        switch (currentState)
-        {
-            case ControllerState.EsperandoInicioExperiencia:
-                ExitEsperandoInicioExperiencia();
-                break;
-            case ControllerState.InteraccionRuptura:
-                ExitInteraccionRuptura();
-                break;
-            case ControllerState.SecuenciaNarrativa:
-                ExitSecuenciaNarrativa();
-                break;
-            case ControllerState.Visor3D:
-                ExitVisor3D();
-                break;
-        }
-
-        // Reiniciar Arduino a lectura de RFID
-        ConectorArduino.Instance.RequestState(ArduinoState.EsperandoRFID);
-        Debug.Log("[ControladorFlujo] Solicitado a Arduino: EsperandoRFID (Reset)");
-
-        if (LanzadorEscenas.Instance != null)
-        {
-            LanzadorEscenas.Instance.cargarEscena(EscenasSistema.Inicio);
-        }
-
-        // Cambiar al estado inicial
-        currentState = ControllerState.EsperandoID;
-        InitializeEsperandoID();
-    }
     public void SetModelFragmentedState(bool value)
     {
         hasFragmentedModel = value;
@@ -434,8 +402,16 @@ public class ControladorFlujo : MonoBehaviour
     {
         TransitionToVisor3D();
     }
+    public void setSystemFlow(bool state)
+    {
+        isFlowPaused = state;
+    }
     #endregion
 
+
+    // ============================================================
+    // MÉTODOS PRIVADOS
+    // ============================================================
     #region MÉTODOS PRIVADOS
 
     /// <summary>
@@ -449,9 +425,11 @@ public class ControladorFlujo : MonoBehaviour
 
     /// <summary>
     /// Carga un modelo glTF/glB desde una ruta externa dentro de un placeholder específico.
+    /// También establece el flujo del sistema como PAUSADO mediante la variable isFlowPaused.
     /// </summary>
-    async void LoadModelAsync(GameObject placeholder, string modelPath, Action callback = null)
+    async void LoadModelAsync(GameObject placeholder, string modelPath)
     {
+        isFlowPaused = true;
         Debug.Log($"[ControladorFlujo] Cargando modelo: {modelPath}");
 
         var gltf = new GltfImport();
@@ -466,10 +444,20 @@ public class ControladorFlujo : MonoBehaviour
             Debug.LogError($"[ControladorFlujo] Fallo al cargar: {modelPath}");
         }
 
-        callback?.Invoke();
+        isFlowPaused = false;
     }
-    IEnumerator asyncGetGameObjectOfType<T>(Action<T> callback) where T : UnityEngine.Object
+
+    /// <summary>
+    /// Inicia una corutina que busca constantemente un objeto en escena según el tipo pasado.
+    /// Al inicio de la búsqueda, establece el flujo del sistema como PAUSADO usando la variable isFlowPaused, y la reestablece al terminar la búsqueda.
+    /// </summary>
+    void waitForObjectToBeOnScene<T>() where T : UnityEngine.Object
     {
+        StartCoroutine(searchObject<T>());
+    }
+    IEnumerator searchObject<T>() where T : UnityEngine.Object
+    {
+        isFlowPaused = true;
         T obj = null;
 
         while (obj == null)
@@ -477,13 +465,45 @@ public class ControladorFlujo : MonoBehaviour
             obj = GameObject.FindObjectOfType<T>();
             yield return null;
         }
-        // Pasamos el objeto al callback
-        callback?.Invoke(obj);
+        isFlowPaused = false;
     }
+
+    bool DoesCurrentExperienceModelExists()
+    {
+        if (currentExperienceData == null || string.IsNullOrEmpty(currentExperienceData.modeloPath))
+        {
+            Debug.LogError("[ControladorFlujo] La información de la experiencia o el modelo 3D no es válida");
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+
     void CheckIfExperienceIsInterrupted()
     {
         if (string.IsNullOrEmpty(interactionData.RFID) || interactionData.RFID == lastRFIDRead) return;
         ResetToStartState();
+    }
+    void ResetToStartState()
+    {
+        Debug.Log("[ControladorFlujo] Reset abrupto a EsperandoID. Reiniciando flujo...");
+
+        if (currentState == ControllerState.EsperandoID) return;
+
+        // Reiniciar Arduino a lectura de RFID
+        ConectorArduino.Instance.RequestState(ArduinoState.EsperandoRFID);
+        Debug.Log("[ControladorFlujo] Solicitado a Arduino: EsperandoRFID (Reset)");
+
+        if (LanzadorEscenas.Instance != null)
+        {
+            LanzadorEscenas.Instance.cargarEscena(EscenasSistema.Inicio);
+        }
+
+        // Cambiar al estado inicial
+        currentState = ControllerState.EsperandoID;
+        InitializeEsperandoID();
     }
 
     #endregion
