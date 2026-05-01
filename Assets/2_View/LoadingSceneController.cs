@@ -7,7 +7,6 @@ using UnityEngine.UI;
 public class LoadingSceneController : MonoBehaviour
 {
     [SerializeField] Slider loadingSlider;
-    [SerializeField] float maxProgressWhenCallback = 80f;
     int sceneToLoad;
     Action<Action> optionalCallback = null;
 
