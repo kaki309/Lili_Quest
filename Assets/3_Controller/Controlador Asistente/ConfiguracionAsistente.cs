@@ -92,6 +92,8 @@ public class ConfiguracionAsistente : MonoBehaviour
             yield break;
         }
 
+        yield return new WaitForSeconds(1.5f);
+
         // Paso 1: Mostrar expresión asustada con fade-in y reproducir audio asustado
         controlador.SetExpresion(ExpresionesAsistente.Preocupado);
         controlador.PlayDialog(audioPrueba, "LA PRIMERA SE DESESPERA");

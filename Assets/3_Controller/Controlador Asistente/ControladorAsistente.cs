@@ -30,19 +30,11 @@ public class ControladorAsistente : MonoBehaviour
     {
         Instance = this;
     }
-
     private void Start()
     {
         ValidarReferencias();
-        InicializarCanvasGroups();
+        InicializarElementos();
     }
-
-    private void OnDisable()
-    {
-        ClearAsistente();
-        StopAllCoroutines();
-    }
-
     private void OnDestroy()
     {
         if (Instance == this)
@@ -108,15 +100,15 @@ public class ControladorAsistente : MonoBehaviour
     /// La secuencia automáticamente establece estaReproduciendo a true/false.
     /// </summary>
     /// <param name="nombreSecuencia">Nombre de la secuencia a ejecutar.</param>
-    public void ExecuteSequence(SecuenciasDelSistema nombreSecuencia)
+    public IEnumerator ExecuteSequence(SecuenciasDelSistema nombreSecuencia)
     {
         if (estaReproduciendo)
         {
             Debug.LogWarning("[ControladorAsistente] Ya hay una secuencia en reproducción.");
-            return;
+            yield break;
         }
 
-        StartCoroutine(ExecuteSequenceCoroutine(nombreSecuencia));
+        yield return StartCoroutine(ExecuteSequenceCoroutine(nombreSecuencia));
     }
 
     /// <summary>
@@ -176,7 +168,7 @@ public class ControladorAsistente : MonoBehaviour
     /// <summary>
     /// Inicializa los CanvasGroup para manejar fade-in/out de imagen.
     /// </summary>
-    private void InicializarCanvasGroups()
+    private void InicializarElementos()
     {
         if (imagenAsistente != null)
         {
