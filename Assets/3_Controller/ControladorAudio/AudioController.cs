@@ -5,23 +5,20 @@ using UnityEngine.Networking;
 
 /// <summary>
 /// Controlador de audio global.
-/// - No tiene referencias a clips internos.
-/// - Puede reproducir el clip ya asignado en cada AudioSource hijo (sin parámetros).
-/// - También acepta AudioClip o path del sistema como parámetro.
-/// - Controla música, SFX y diálogos de forma independiente via AudioMixer.
-/// - Patrón Singleton, persiste entre escenas.
+/// No guarda ningún clip internamente.
+/// Recibe AudioClip por parámetro y lo reproduce en el canal correcto.
+/// Patrón Singleton, persiste entre escenas.
 /// </summary>
-public class ControladorAudio : MonoBehaviour
+public class AudioController : MonoBehaviour
 {
     // ── Singleton ──────────────────────────────────────────────────────────────
-    public static ControladorAudio Instance { get; private set; }
+    public static AudioController Instance { get; private set; }
 
     // ══════════════════════════════════════════════════════════════════════════
     //  INSPECTOR
     // ══════════════════════════════════════════════════════════════════════════
 
     [Header("Audio Mixer")]
-    [Tooltip("Asignar el AudioMixer desde Interfaz digital -> audios")]
     [SerializeField] private AudioMixer masterMixer;
 
     [Header("AudioSources (hijos del GameObject)")]
@@ -29,12 +26,12 @@ public class ControladorAudio : MonoBehaviour
     [SerializeField] private AudioSource sfxSource;
     [SerializeField] private AudioSource dialogueSource;
 
-    [Header("Volúmenes generales (0 a 1) — editables desde el Inspector")]
+    [Header("Volúmenes generales (0 a 1)")]
     [Range(0f, 1f)] [SerializeField] private float musicVolume    = 0.6f;
     [Range(0f, 1f)] [SerializeField] private float sfxVolume      = 1.0f;
     [Range(0f, 1f)] [SerializeField] private float dialogueVolume = 1.0f;
 
-    // ── Parámetros expuestos en el AudioMixer ──────────────────────────────────
+    // ── Parámetros del AudioMixer ──────────────────────────────────────────────
     private const string MIXER_MASTER   = "MasterVolume";
     private const string MIXER_MUSIC    = "MusicVolume";
     private const string MIXER_SFX      = "SFXVolume";
@@ -74,7 +71,6 @@ public class ControladorAudio : MonoBehaviour
         ApplyMixerVolume(MIXER_DIALOGUE, _dialogueVol);
     }
 
-    // Se llama automáticamente cada vez que cambias un valor en el Inspector
     private void OnValidate()
     {
         _musicVol    = musicVolume;
@@ -87,56 +83,50 @@ public class ControladorAudio : MonoBehaviour
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  API PÚBLICA — REPRODUCCIÓN SIN PARÁMETROS
-    //  Usa el clip que ya está asignado en cada AudioSource hijo
+    //  API PÚBLICA — REPRODUCCIÓN CON AUDIOCLIP
     // ══════════════════════════════════════════════════════════════════════════
 
     /// <summary>
-    /// Reproduce el clip ya asignado en el AudioSource de música.
+    /// Reproduce un clip en el canal de Música.
+    /// El clip viene desde el script que llama este método.
     /// </summary>
-    public void PlayMusic(bool loop = true)
+    public void PlayMusic(AudioClip audio, bool loop = true)
     {
-        if (musicSource == null || musicSource.clip == null) return;
+        if (audio == null || musicSource == null) return;
+        musicSource.clip = audio;
         musicSource.loop = loop;
         musicSource.Play();
     }
 
     /// <summary>
-    /// Reproduce el clip ya asignado en el AudioSource de SFX.
+    /// Reproduce un clip en el canal de SFX.
+    /// El clip viene desde el script que llama este método.
     /// </summary>
-    public void PlaySFX()
+    public void PlaySFX(AudioClip audio)
     {
-        if (sfxSource == null || sfxSource.clip == null || _sfxMuted) return;
-        sfxSource.PlayOneShot(sfxSource.clip, _sfxVol);
+        if (audio == null || sfxSource == null || _sfxMuted) return;
+        sfxSource.PlayOneShot(audio, _sfxVol);
     }
 
     /// <summary>
-    /// Reproduce el clip ya asignado en el AudioSource de diálogos.
+    /// Reproduce un clip en el canal de Diálogos.
+    /// El clip viene desde el script que llama este método.
+    /// Interrumpe el diálogo anterior si hay uno en curso.
     /// </summary>
-    public void PlayDialogue()
+    public void PlayDialogue(AudioClip audio)
     {
-        if (dialogueSource == null || dialogueSource.clip == null || _dialogueMuted) return;
+        if (audio == null || dialogueSource == null || _dialogueMuted) return;
         dialogueSource.Stop();
+        dialogueSource.clip = audio;
         dialogueSource.Play();
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  API PÚBLICA — REPRODUCCIÓN CON PARÁMETRO (AudioClip o path)
+    //  API PÚBLICA — REPRODUCCIÓN CON PATH DEL SISTEMA
     // ══════════════════════════════════════════════════════════════════════════
 
     /// <summary>
-    /// Reproduce música pasando un AudioClip por parámetro.
-    /// </summary>
-    public void PlayMusic(AudioClip clip, bool loop = true)
-    {
-        if (clip == null || musicSource == null) return;
-        musicSource.loop = loop;
-        musicSource.clip = clip;
-        musicSource.Play();
-    }
-
-    /// <summary>
-    /// Reproduce música cargándola desde un path del sistema.
+    /// Carga y reproduce música desde un path del sistema.
     /// Ejemplo: PlayMusic(@"C:\experiencia\musica.wav")
     /// </summary>
     public void PlayMusic(string path, bool loop = true)
@@ -145,16 +135,7 @@ public class ControladorAudio : MonoBehaviour
     }
 
     /// <summary>
-    /// Reproduce un SFX pasando un AudioClip por parámetro.
-    /// </summary>
-    public void PlaySFX(AudioClip clip)
-    {
-        if (clip == null || sfxSource == null || _sfxMuted) return;
-        sfxSource.PlayOneShot(clip, _sfxVol);
-    }
-
-    /// <summary>
-    /// Reproduce un SFX cargándolo desde un path del sistema.
+    /// Carga y reproduce un SFX desde un path del sistema.
     /// Ejemplo: PlaySFX(@"C:\experiencia\efecto.wav")
     /// </summary>
     public void PlaySFX(string path)
@@ -163,18 +144,7 @@ public class ControladorAudio : MonoBehaviour
     }
 
     /// <summary>
-    /// Reproduce un diálogo pasando un AudioClip por parámetro.
-    /// </summary>
-    public void PlayDialogue(AudioClip clip)
-    {
-        if (clip == null || dialogueSource == null || _dialogueMuted) return;
-        dialogueSource.Stop();
-        dialogueSource.clip = clip;
-        dialogueSource.Play();
-    }
-
-    /// <summary>
-    /// Reproduce un diálogo cargándolo desde un path del sistema.
+    /// Carga y reproduce un diálogo desde un path del sistema.
     /// Ejemplo: PlayDialogue(@"C:\experiencia\dialogo.wav")
     /// </summary>
     public void PlayDialogue(string path)
@@ -197,12 +167,11 @@ public class ControladorAudio : MonoBehaviour
 
             if (www.result == UnityWebRequest.Result.Success)
             {
-                AudioClip clip = DownloadHandlerAudioClip.GetContent(www);
-                onLoaded?.Invoke(clip);
+                onLoaded?.Invoke(DownloadHandlerAudioClip.GetContent(www));
             }
             else
             {
-                Debug.LogError($"[ControladorAudio] Error cargando audio desde: {path}\n{www.error}");
+                Debug.LogError($"[AudioController] Error cargando: {path}\n{www.error}");
                 onLoaded?.Invoke(null);
             }
         }
@@ -274,7 +243,7 @@ public class ControladorAudio : MonoBehaviour
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  CONTROL DE VOLUMEN POR CANAL
+    //  CONTROL DE VOLUMEN
     // ══════════════════════════════════════════════════════════════════════════
 
     public void SetMasterVolume(float vol)   => ApplyMixerVolume(MIXER_MASTER, Mathf.Clamp01(vol));
@@ -305,7 +274,7 @@ public class ControladorAudio : MonoBehaviour
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  MUTE POR CANAL
+    //  MUTE
     // ══════════════════════════════════════════════════════════════════════════
 
     public void SetMuteMusic(bool mute)

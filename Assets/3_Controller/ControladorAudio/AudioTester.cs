@@ -1,100 +1,86 @@
 using UnityEngine;
 
-/// <summary>
-/// Script de prueba del ControladorAudio.
-/// No necesita clips asignados aquí — los toma directo del AudioSource hijo.
-///
-/// ══════════════════════════════════════════
-///  TECLAS DE PRUEBA
-/// ══════════════════════════════════════════
-///
-///  — REPRODUCCIÓN (usa el clip del AudioSource) —
-///  C  →  PlaySFX
-///  M  →  PlayMusic (loop)
-///  N  →  PlayDialogue
-///
-///  — MUTE —
-///  Q  →  Toggle Mute Música
-///  W  →  Toggle Mute SFX
-///  E  →  Toggle Mute Diálogo
-///
-///  — PAUSA / STOP —
-///  P  →  Pausar todo
-///  O  →  Reanudar todo
-///  Espacio  →  Detener todo
-/// ══════════════════════════════════════════
-/// </summary>
 public class AudioTester : MonoBehaviour
 {
+    [Header("Clips de prueba")]
+    [SerializeField] private AudioClip audioSFX;
+    [SerializeField] private AudioClip audioMusica;
+    [SerializeField] private AudioClip audioDialogo;
+
+/// <summary>
+///NOTA:
+/// PAra llamar un audio se debe poner el tipo de audio que va a ser
+/// por ejemplo: audiocontroller.instance.playMusic
+/// la parte de playmusic es la que nos idce que tipo  es,
+/// si pones play sfx es para los efectos y si ponemos playdialogue es para los dialogos
+/// asi para que siga funcionandno el mixer y se puedan manejar los niveles de audio
+/// 
+/// </summary>
+
+
     void Update()
     {
-        // ══════════════════════════════════════
-        //  REPRODUCCIÓN
-        // ══════════════════════════════════════
-
-        // C — SFX (usa el clip asignado en el AudioSource SFX)
+        // C — Reproduce SFX
         if (Input.GetKeyDown(KeyCode.C))
         {
-            Debug.Log("▶ [SFX] PlaySFX");
-            ControladorAudio.Instance.PlaySFX();
+            Debug.Log("Reproduciendo SFX");
+            AudioController.Instance.PlaySFX(audioSFX);
         }
 
-        // M — Música en loop (usa el clip asignado en el AudioSource Música)
+        // M — Reproduce Música
         if (Input.GetKeyDown(KeyCode.M))
         {
-            Debug.Log("▶ [Música] PlayMusic en loop");
-            ControladorAudio.Instance.PlayMusic(loop: true);
+            Debug.Log("Reproduciendo Música");
+            AudioController.Instance.PlayMusic(audioMusica, true);
         }
 
-        // N — Diálogo (usa el clip asignado en el AudioSource Diálogos)
+        // N — Reproduce Diálogo
         if (Input.GetKeyDown(KeyCode.N))
         {
-            Debug.Log("▶ [Diálogo] PlayDialogue");
-            ControladorAudio.Instance.PlayDialogue();
+            Debug.Log("Reproduciendo Diálogo");
+            AudioController.Instance.PlayDialogue(audioDialogo);
         }
 
-        // ══════════════════════════════════════
-        //  MUTE
-        // ══════════════════════════════════════
-
+        // Q — Mute Música
         if (Input.GetKeyDown(KeyCode.Q))
         {
-            Debug.Log("🔇 [Música] Toggle Mute");
-            ControladorAudio.Instance.ToggleMuteMusic();
+            Debug.Log("Toggle Mute Música");
+            AudioController.Instance.ToggleMuteMusic();
         }
 
+        // W — Mute SFX
         if (Input.GetKeyDown(KeyCode.W))
         {
-            Debug.Log("🔇 [SFX] Toggle Mute");
-            ControladorAudio.Instance.ToggleMuteSFX();
+            Debug.Log("Toggle Mute SFX");
+            AudioController.Instance.ToggleMuteSFX();
         }
 
+        // E — Mute Diálogo
         if (Input.GetKeyDown(KeyCode.E))
         {
-            Debug.Log("🔇 [Diálogo] Toggle Mute");
-            ControladorAudio.Instance.ToggleMuteDialogue();
+            Debug.Log("Toggle Mute Diálogo");
+            AudioController.Instance.ToggleMuteDialogue();
         }
 
-        // ══════════════════════════════════════
-        //  PAUSA / STOP
-        // ══════════════════════════════════════
-
+        // P — Pausar todo
         if (Input.GetKeyDown(KeyCode.P))
         {
-            Debug.Log("⏸ PauseAll");
-            ControladorAudio.Instance.PauseAll();
+            Debug.Log("Pausar todo");
+            AudioController.Instance.PauseAll();
         }
 
+        // O — Reanudar todo
         if (Input.GetKeyDown(KeyCode.O))
         {
-            Debug.Log("▶ ResumeAll");
-            ControladorAudio.Instance.ResumeAll();
+            Debug.Log("Reanudar todo");
+            AudioController.Instance.ResumeAll();
         }
 
+        // Espacio — Detener todo
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            Debug.Log("⏹ StopAll");
-            ControladorAudio.Instance.StopAll();
+            Debug.Log("Detener todo");
+            AudioController.Instance.StopAll();
         }
     }
 }
