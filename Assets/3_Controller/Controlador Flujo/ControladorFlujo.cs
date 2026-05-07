@@ -82,8 +82,8 @@ public class ControladorFlujo : MonoBehaviour
         // Capturar datos desde arduino
         interactionData = ConectorArduino.Instance.GetSensorData();
 
-        // Procesar lógica del estado actual mientras no esté en proceso de inicialización
-        if (!isInitializingState)
+        // Procesar lógica del estado actual mientras no esté en proceso de inicialización o cambio
+        if (!isInitializingState || !isSwitchingState)
         {
             RunCurrentStateLogic();
         }
@@ -287,8 +287,8 @@ public class ControladorFlujo : MonoBehaviour
     }
     void UpdateInteraccionRuptura()
     {
-        // Si el modelo aún no ha sido roto, o ya se está cambiando de estado entonces no ejecute nada
-        if (!hasFragmentedModel || isSwitchingState) return;
+        // Si el modelo aún no ha sido roto entonces no ejecute nada
+        if (!hasFragmentedModel) return;
         // Iniciar la transición
         StartCoroutine(TransitionToSecuenciaNarrativa());
     }
@@ -314,7 +314,7 @@ public class ControladorFlujo : MonoBehaviour
         Debug.Log("[ControladorFlujo] Saliendo del estado: InteraccionRuptura");
 
         // Secuencia de asistente
-        yield return ControladorAsistente.Instance.ExecuteSequence(SecuenciasDelSistema.RupturaModelo);
+        yield return ControladorAsistente.Instance.PlaySequence(ConfiguracionAsistente.Instance.Secuencias.RupturaModelo());
 
         // Restaurar bandera para habilitar nuevas interacciones con Lili Quest en una única sesión
         // (Es decir sin cerrar el programa)

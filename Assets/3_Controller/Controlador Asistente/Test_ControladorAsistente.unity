@@ -422,6 +422,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1002786026}
   - component: {fileID: 1002786025}
+  - component: {fileID: 1002786027}
   m_Layer: 0
   m_Name: "Configuraci\xF3nAsistente"
   m_TagString: Untagged
@@ -441,18 +442,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8c45a41e8c55d86408c8c4cf7aa5e2a9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  expresionesSprites:
-  - expresion: 0
-    sprite: {fileID: 0}
-  - expresion: 1
-    sprite: {fileID: 0}
+  _duracionFadeImagen: 0.5
+  _esperaDespuesDeAudio: 0.3
+  spritesExpresiones:
   - expresion: 2
-    sprite: {fileID: 21300000, guid: 67fcaf737464bf14ca70cfd7dc406a54, type: 3}
+    sprite: {fileID: 21300000, guid: 69392bad07fca3b4bab8338282ab74fc, type: 3}
   - expresion: 3
-    sprite: {fileID: 21300000, guid: eeb7d8ff7530f0a45a89be259574ccb7, type: 3}
-  - expresion: 4
-    sprite: {fileID: 0}
-  audioPrueba: {fileID: 8300000, guid: 1b262ce8c50329844b60806c7381e275, type: 3}
+    sprite: {fileID: 21300000, guid: 5241cdc066aec29449af261fc98842b3, type: 3}
 --- !u!4 &1002786026
 Transform:
   m_ObjectHideFlags: 0
@@ -468,6 +464,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1002786027
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1002786024}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41e9f4a4914139642858049b289acb5f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  audioPrueba: {fileID: 8300000, guid: c3f9df622d12e23459cd8f6fcc0b6eea, type: 3}
 --- !u!1 &1087619586
 GameObject:
   m_ObjectHideFlags: 0
@@ -497,7 +506,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42a0a0fe431ad56439bc6d998e36dd65, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  audioClip: {fileID: 8300000, guid: 1b262ce8c50329844b60806c7381e275, type: 3}
+  audioClip: {fileID: 8300000, guid: eb4a54bbe6a0108489e9fda59de88536, type: 3}
 --- !u!4 &1087619588
 Transform:
   m_ObjectHideFlags: 0
@@ -658,8 +667,6 @@ MonoBehaviour:
   imagenAsistente: {fileID: 425311383}
   subtituloText: {fileID: 342349244}
   audioSourceAsistente: {fileID: 1967890343}
-  duracionFadeImagen: 0.5
-  esperaDespuesDeAudio: 0.3
 --- !u!4 &1967890341
 Transform:
   m_ObjectHideFlags: 0

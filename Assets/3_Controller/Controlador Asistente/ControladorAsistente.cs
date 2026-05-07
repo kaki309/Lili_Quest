@@ -17,8 +17,6 @@ public class ControladorAsistente : MonoBehaviour
     [SerializeField] Image imagenAsistente;
     [SerializeField] TMP_Text subtituloText;
     [SerializeField] AudioSource audioSourceAsistente;
-    [SerializeField] float duracionFadeImagen = 0.5f;
-    [SerializeField] float esperaDespuesDeAudio = 0.3f;
 
     CanvasGroup canvasGroupImagen;
     bool estaReproduciendo = false;
@@ -52,7 +50,6 @@ public class ControladorAsistente : MonoBehaviour
     /// Si no está reproduciendo audio, aplica fade-in de la imagen.
     /// Si ya está reproduciendo, cambia el sprite instantáneamente.
     /// </summary>
-    /// <param name="expresion">Expresión emocional a mostrar.</param>
     public void SetExpresion(ExpresionesAsistente expresion)
     {
         if (estaOculto)
@@ -63,8 +60,8 @@ public class ControladorAsistente : MonoBehaviour
         }
         else
         {
-            // Ya reproduciendo audio: cambio instantáneo de sprite
-            CambiarExpresionInstantaneo(expresion);
+            // Ya estaba activo, cambio instantáneo de sprite
+            CambiarExpresion(expresion);
         }
     }
     /// <summary>
@@ -77,12 +74,8 @@ public class ControladorAsistente : MonoBehaviour
     }
 
     /// <summary>
-    /// Reproduce un diálogo con audio y subtítulo sincronizados.
-    /// Solo maneja audio y subtítulo, no la visibilidad de la imagen.
-    /// La imagen debe ser mostrada previamente con SetExpresion().
+    /// Reproduce un diálogo con audio y subtítulo.
     /// </summary>
-    /// <param name="audioClip">Clip de audio a reproducir.</param>
-    /// <param name="texto">Texto del subtítulo a mostrar durante el audio.</param>
     public void PlayDialog(AudioClip audioClip, string texto = "")
     {
         if (audioClip == null)
@@ -99,8 +92,8 @@ public class ControladorAsistente : MonoBehaviour
     /// Solo permite una secuencia a la vez; otras solicitudes serán ignoradas.
     /// La secuencia automáticamente establece estaReproduciendo a true/false.
     /// </summary>
-    /// <param name="nombreSecuencia">Nombre de la secuencia a ejecutar.</param>
-    public IEnumerator ExecuteSequence(SecuenciasDelSistema nombreSecuencia)
+    /// <param name="secuencia">Método de la secuencia a ejecutar.</param>
+    public IEnumerator PlaySequence(IEnumerator secuencia)
     {
         if (estaReproduciendo)
         {
@@ -108,7 +101,7 @@ public class ControladorAsistente : MonoBehaviour
             yield break;
         }
 
-        yield return StartCoroutine(ExecuteSequenceCoroutine(nombreSecuencia));
+        yield return StartCoroutine(ExecuteSequenceCoroutine(secuencia));
     }
 
     /// <summary>
@@ -135,8 +128,6 @@ public class ControladorAsistente : MonoBehaviour
     #endregion
 
     #region Métodos Privados
-
-    // -------------------------- Validación
 
     /// <summary>
     /// Valida que todas las referencias necesarias estén asignadas.
@@ -194,7 +185,7 @@ public class ControladorAsistente : MonoBehaviour
     /// Cambia el sprite del asistente según la expresión instantáneamente.
     /// Obtiene el sprite desde ConfiguracionAsistente.
     /// </summary>
-    private void CambiarExpresionInstantaneo(ExpresionesAsistente expresion)
+    private void CambiarExpresion(ExpresionesAsistente expresion)
     {
         if (imagenAsistente == null)
         {
@@ -214,28 +205,18 @@ public class ControladorAsistente : MonoBehaviour
             imagenAsistente.sprite = sprite;
         }
     }
-    /// <summary>
-    /// Corrutina para cambiar expresión con fade-in de la imagen.
-    /// Se ejecuta solo si no está reproduciendo (primera aparición).
-    /// </summary>
     private IEnumerator mostrarExpresionProgresivo(ExpresionesAsistente expresion)
     {
         // Cambiar sprite mientras está oculto
-        CambiarExpresionInstantaneo(expresion);
+        CambiarExpresion(expresion);
 
         // Mostrar imagen con fade-in
-        yield return StartCoroutine(FadeImagenCoroutine(true, duracionFadeImagen));
+        yield return StartCoroutine(FadeImagenCoroutine(true, ConfiguracionAsistente.Instance.DuracionFadeImagen));
     }
-    /// <summary>
-    /// Corrutina para ocultar la expresión con fade-out de la imagen.
-    /// </summary>
     private IEnumerator ocultarExpresionProgresivo()
     {
-        yield return StartCoroutine(FadeImagenCoroutine(false, duracionFadeImagen));
+        yield return StartCoroutine(FadeImagenCoroutine(false, ConfiguracionAsistente.Instance.DuracionFadeImagen));
     }
-    /// <summary>
-    /// Realiza fade-in/out de la imagen.
-    /// </summary>
     private IEnumerator FadeImagenCoroutine(bool mostrar, float duracion)
     {
         if (canvasGroupImagen == null)
@@ -264,48 +245,23 @@ public class ControladorAsistente : MonoBehaviour
 
     /// <summary>
     /// Corrutina para reproducir un diálogo con audio y subtítulo.
-    /// Solo maneja audio y subtítulo, sin controlar la visibilidad de la imagen.
     /// </summary>
     private IEnumerator PlayDialogCoroutine(AudioClip audioClip, string texto)
     {
-        // 1. Mostrar subtítulo sin animación
-        MostrarSubtitulo(texto);
+        // 1. Mostrar subtítulo
+        subtituloText.text = texto;
+        subtituloText.gameObject.SetActive(true);
 
         // 2. Reproducir audio
         audioSourceAsistente.clip = audioClip;
         audioSourceAsistente.Play();
 
         // 3. Esperar a que termine el audio y otro poquito
-        yield return new WaitForSeconds(audioClip.length + esperaDespuesDeAudio);
+        yield return new WaitForSeconds(audioClip.length + ConfiguracionAsistente.Instance.EsperaDespuesDeAudio);
 
         // 4. Limpiar subtítulo instantáneamente
-        OcultarSubtitulo();
-    }
-    /// <summary>
-    /// Muestra el subtítulo instantáneamente (sin animación).
-    /// </summary>
-    private void MostrarSubtitulo(string texto)
-    {
-        if (subtituloText == null)
-        {
-            return;
-        }
-
-        subtituloText.text = texto;
-        subtituloText.gameObject.SetActive(true);
-    }
-    /// <summary>
-    /// Oculta el subtítulo instantáneamente (sin animación).
-    /// </summary>
-    private void OcultarSubtitulo()
-    {
-        if (subtituloText == null)
-        {
-            return;
-        }
-
-        subtituloText.text = "";
         subtituloText.gameObject.SetActive(false);
+        subtituloText.text = "";
     }
 
     // ======================================
@@ -313,10 +269,10 @@ public class ControladorAsistente : MonoBehaviour
     // =====================================
 
     /// <summary>
-    /// Corrutina que ejecuta una secuencia obtenida desde ConfiguracionAsistente.
+    /// Corrutina que ejecuta una secuencia obtenida desde ConfiguracionAsistente.Instance.Secuencias.
     /// Automáticamente gestiona el estado estaReproduciendo al inicio y al final.
     /// </summary>
-    private IEnumerator ExecuteSequenceCoroutine(SecuenciasDelSistema nombreSecuencia)
+    private IEnumerator ExecuteSequenceCoroutine(IEnumerator secuencia)
     {
         estaReproduciendo = true;
 
@@ -328,9 +284,8 @@ public class ControladorAsistente : MonoBehaviour
             yield break;
         }
 
-        // Obtiene y ejecuta la secuencia
+        // Ejecuta la secuencia
         // yield return hace que este código se pause hasta que la secuencia lanzada acabe completamente
-        var secuencia = configuracion.GetSequence(nombreSecuencia);
         yield return StartCoroutine(secuencia);
 
         // Termina la reproducción y restablece el estado

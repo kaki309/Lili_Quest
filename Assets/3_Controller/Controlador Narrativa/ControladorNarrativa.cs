@@ -1,11 +1,9 @@
 using System.Collections;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class ControladorNarrativa : MonoBehaviour
 {
     GestorInterfazPantallaNarrativa UI;
-    bool isPlayingSecuence = false;
     bool isAnsweringTrivia = false;
     [Header("Sonidos del sistema")]
     [SerializeField] AudioClip respuestaCorrecta;
@@ -25,7 +23,6 @@ public class ControladorNarrativa : MonoBehaviour
     }
     IEnumerator SimularSecuencia()
     {   
-        isPlayingSecuence = true;
         ControladorAsistente asistente = ControladorAsistente.Instance;
 
         yield return new WaitForSeconds(3);
@@ -51,7 +48,6 @@ public class ControladorNarrativa : MonoBehaviour
 
         UI.CanvasTrivia.SetActive(false);
 
-        isPlayingSecuence = false;
         finishSecuence();
     }
     void finishSecuence()
