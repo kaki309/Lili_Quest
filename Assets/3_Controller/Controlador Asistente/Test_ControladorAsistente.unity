@@ -510,8 +510,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 41e9f4a4914139642858049b289acb5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  audioPantallaInicio: {fileID: 8300000, guid: 43a215ee0210c7d4bb4c64ec39c927b5, type: 3}
   "audiosIntroducci\xF3nAntesDeRuptura":
+  - {fileID: 8300000, guid: 43a215ee0210c7d4bb4c64ec39c927b5, type: 3}
   - {fileID: 8300000, guid: eb4a54bbe6a0108489e9fda59de88536, type: 3}
   - {fileID: 8300000, guid: 0a736713e8253fb4abe7d1a334675062, type: 3}
   audiosRuptura:

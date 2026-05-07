@@ -63,9 +63,6 @@ public class Test_Asistente : MonoBehaviour
     {
         ControladorAsistente asistente = ControladorAsistente.Instance;
 
-        Debug.Log("[Test_Asistente] Ejecutando InicioExperiencia");
-        yield return asistente.PlaySequence(ConfiguracionAsistente.Instance.Secuencias.InicioExperiencia());
-
         Debug.Log("[Test_Asistente] Ejecutando IntroducciónAntesDeRuptura");
         yield return asistente.PlaySequence(ConfiguracionAsistente.Instance.Secuencias.IntroducciónAntesDeRuptura());
 

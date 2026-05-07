@@ -3,8 +3,6 @@ using UnityEngine;
 
 public class SecuenciasAsistente : MonoBehaviour
 {
-    [Header("Pantalla Inicio")]
-    [SerializeField] AudioClip audioPantallaInicio;
     [Header("Introducción antes de ruptura")]
     [SerializeField] AudioClip[] audiosIntroducciónAntesDeRuptura;
     [Header("Ruptura")]
@@ -35,28 +33,26 @@ public class SecuenciasAsistente : MonoBehaviour
         return true;
     }
 
-    public IEnumerator InicioExperiencia()
-    {
-        if (!getController()) yield break;
-
-        // Aquí se llama a reproducir un diálogo directamente sobre el controlador de audio
-
-        yield return new WaitForSeconds(audioPantallaInicio.length + tiempoEspera);
-    }
     public IEnumerator IntroducciónAntesDeRuptura()
     {
         if (!getController()) yield break;
         AudioClip audio;
 
-        // Introducción a la pieza
+        // Saludo
         audio = audiosIntroducciónAntesDeRuptura[0];
-        controlador.SetExpresion(ExpresionesAsistente.idle1);
+        controlador.SetExpresion(ExpresionesAsistente.saludo);
+        controlador.PlayDialog(audio, "Acabas de activar una pieza muy especial.\nSoy Laia, y te acompañare.  ");
+        yield return new WaitForSeconds(audio.length + tiempoEspera);
+
+        // Introducción a la pieza
+        audio = audiosIntroducciónAntesDeRuptura[1];
+        controlador.SetExpresion(ExpresionesAsistente.idle2);
         controlador.PlayDialog(audio, "Este es un silbato en forma de perro.\nPuedes explorarlo… gíralo y acércate para ver sus detalles.");
         yield return new WaitForSeconds(audio.length + tiempoEspera);
 
         // Advertencia de manipulación
-        audio = audiosIntroducciónAntesDeRuptura[1];
-        controlador.SetExpresion(ExpresionesAsistente.idle1);
+        audio = audiosIntroducciónAntesDeRuptura[2];
+        controlador.SetExpresion(ExpresionesAsistente.deHecho1);
         controlador.PlayDialog(audio, "Pero… hazlo con cuidado.");
         yield return new WaitForSeconds(audio.length + tiempoEspera);
     }
