@@ -7,7 +7,7 @@ using System.Collections;
 /// </summary>
 public class Test_Asistente : MonoBehaviour
 {
-    [SerializeField] AudioClip audioClip;
+    [SerializeField] AudioClip audioPrueba;
 
     private void Start()
     {
@@ -19,6 +19,7 @@ public class Test_Asistente : MonoBehaviour
 
         // Inicia las pruebas
         Debug.Log("[Test_Asistente] Iniciando pruebas del ControladorAsistente...");
+        //StartCoroutine(EjecutarPruebas());
         StartCoroutine(testSecuencias());
     }
 
@@ -38,16 +39,16 @@ public class Test_Asistente : MonoBehaviour
         // ============ PRUEBA 2: Reproducir diálogo ============
         Debug.Log("[Test_Asistente] PRUEBA 2: Reproducir audio y establecer imagen (Happy), luego ocultar");
         asistente.SetExpresion(ExpresionesAsistente.idle1);
-        asistente.PlayDialog(audioClip, "Este es el primer diálogo de prueba.");
-        yield return new WaitForSeconds(audioClip.length + 3f);
+        asistente.PlayDialog(audioPrueba, "Este es el primer diálogo de prueba.");
+        yield return new WaitForSeconds(audioPrueba.length + 3f);
         asistente.HideExpresion();
         yield return new WaitForSeconds(4f);
 
         // ============ PRUEBA 3: Cambiar expresión durante reproducción ============
         Debug.Log("[Test_Asistente] PRUEBA 3: Establecer expresión y cambiarla");
-        asistente.SetExpresion(ExpresionesAsistente.idle1);
+        asistente.SetExpresion(ExpresionesAsistente.sorpresa);
         yield return new WaitForSeconds(3f);
-        asistente.SetExpresion(ExpresionesAsistente.idle1);
+        asistente.SetExpresion(ExpresionesAsistente.deHecho1);
         yield return new WaitForSeconds(3f);
         asistente.HideExpresion();
         yield return new WaitForSeconds(4f);
@@ -68,12 +69,6 @@ public class Test_Asistente : MonoBehaviour
 
         Debug.Log("[Test_Asistente] Ejecutando RupturaModelo");
         yield return asistente.PlaySequence(ConfiguracionAsistente.Instance.Secuencias.RupturaModelo());
-
-        Debug.Log("[Test_Asistente] Ejecutando InicioNarrativa");
-        yield return asistente.PlaySequence(ConfiguracionAsistente.Instance.Secuencias.InicioNarrativa());
-
-        Debug.Log("[Test_Asistente] Ejecutando CierreNarrativa");
-        yield return asistente.PlaySequence(ConfiguracionAsistente.Instance.Secuencias.CierreNarrativa());
 
         Debug.Log("[Test_Asistente] Ejecutando Visor3DLibre");
         yield return asistente.PlaySequence(ConfiguracionAsistente.Instance.Secuencias.Visor3DLibre());

@@ -7,12 +7,8 @@ public class SecuenciasAsistente : MonoBehaviour
     [SerializeField] AudioClip[] audiosIntroducciónAntesDeRuptura;
     [Header("Ruptura")]
     [SerializeField] AudioClip[] audiosRuptura;
-    [Header("Inicio Narrativa")]
-    [SerializeField] AudioClip audioInicioNarrativa;
-    [Header("Cierre Narrativa")]
-    [SerializeField] AudioClip audioCierreNarrativa;
     [Header("Visor 3D libre")]
-    [SerializeField] AudioClip audioVisor3DLibre;
+    [SerializeField] AudioClip[] audiosVisor3DLibre;
 
     ControladorAsistente controlador;
     float tiempoEspera;
@@ -64,44 +60,42 @@ public class SecuenciasAsistente : MonoBehaviour
 
         // Susto por ruptura
         audio = audiosRuptura[0];
-        controlador.SetExpresion(ExpresionesAsistente.idle1);
+        controlador.SetExpresion(ExpresionesAsistente.sorpresa);
         controlador.PlayDialog(audio, "Oh… se ha roto.");
         yield return new WaitForSeconds(audio.length + tiempoEspera);
 
         // Explicación de fragilidad
         audio = audiosRuptura[1];
-        controlador.SetExpresion(ExpresionesAsistente.idle1);
+        controlador.SetExpresion(ExpresionesAsistente.explicando1);
         controlador.PlayDialog(audio, "Las piezas reales son frágiles… y únicas.\nPor eso solo pueden ser manipuladas por expertos.");
         yield return new WaitForSeconds(audio.length + tiempoEspera);
 
         // Propuesta de reparación
         audio = audiosRuptura[2];
-        controlador.SetExpresion(ExpresionesAsistente.idle1);
+        controlador.SetExpresion(ExpresionesAsistente.amable2);
         controlador.PlayDialog(audio, "Pero aún podemos recuperarla.\nTe ayudaré a reconstruirla mientras descubrimos su historia.");
         yield return new WaitForSeconds(audio.length + tiempoEspera);
-    }
-    public IEnumerator InicioNarrativa()
-    {
-        if (!getController()) yield break;
 
-        controlador.SetExpresion(ExpresionesAsistente.idle1);
-        controlador.PlayDialog(audioInicioNarrativa, "Te acompañaré a descubrir la historia de esta pieza.");
-        yield return new WaitForSeconds(audioInicioNarrativa.length + tiempoEspera);
-    }
-    public IEnumerator CierreNarrativa()
-    {
-        if (!getController()) yield break;
-
-        controlador.SetExpresion(ExpresionesAsistente.idle1);
-        controlador.PlayDialog(audioCierreNarrativa, "¡Genial! Has reconstruido la pieza y comprendido su historia cultural.");
-        yield return new WaitForSeconds(audioCierreNarrativa.length + tiempoEspera);
+        // Acompañamiento
+        audio = audiosRuptura[3];
+        controlador.SetExpresion(ExpresionesAsistente.idle2);
+        controlador.PlayDialog(audio, "Te acompañaré a descubrir la historia de esta pieza.");
+        yield return new WaitForSeconds(audio.length + tiempoEspera);
     }
     public IEnumerator Visor3DLibre()
     {
         if (!getController()) yield break;
+        
+        AudioClip audio;
 
-        controlador.SetExpresion(ExpresionesAsistente.idle1);
-        controlador.PlayDialog(audioVisor3DLibre, "Ahora puedes observarla libremente… ya no se romperá.");
-        yield return new WaitForSeconds(audioCierreNarrativa.length + tiempoEspera);
+        audio = audiosVisor3DLibre[0];
+        controlador.SetExpresion(ExpresionesAsistente.explicando2);
+        controlador.PlayDialog(audio, "¡Genial! Has reconstruido la pieza y comprendido su historia cultural.");
+        yield return new WaitForSeconds(audio.length + tiempoEspera);
+
+        audio = audiosVisor3DLibre[0];
+        controlador.SetExpresion(ExpresionesAsistente.idle2);
+        controlador.PlayDialog(audio, "Ahora puedes observarla libremente… ya no se romperá.");
+        yield return new WaitForSeconds(audio.length + tiempoEspera);
     }
 }
