@@ -11,6 +11,7 @@ public class SecuenciasAsistente : MonoBehaviour
     [SerializeField] AudioClip[] audiosVisor3DLibre;
 
     ControladorAsistente controlador;
+    AudioClip audioActual;
     float tiempoEspera;
     void Start()
     {
@@ -32,70 +33,71 @@ public class SecuenciasAsistente : MonoBehaviour
     public IEnumerator IntroducciónAntesDeRuptura()
     {
         if (!getController()) yield break;
-        AudioClip audio;
 
         // Saludo
-        audio = audiosIntroducciónAntesDeRuptura[0];
+        audioActual = audiosIntroducciónAntesDeRuptura[0];
         controlador.SetExpresion(ExpresionesAsistente.saludo);
-        controlador.PlayDialog(audio, "Acabas de activar una pieza muy especial.\nSoy Laia, y te acompañare.  ");
-        yield return new WaitForSeconds(audio.length + tiempoEspera);
+        controlador.PlayDialog(audioActual, "Acabas de activar una pieza muy especial.\nSoy Laia, y te acompañaré.");
+        yield return new WaitForSeconds(audioActual.length + tiempoEspera);
 
         // Introducción a la pieza
-        audio = audiosIntroducciónAntesDeRuptura[1];
+        audioActual = audiosIntroducciónAntesDeRuptura[1];
         controlador.SetExpresion(ExpresionesAsistente.idle2);
-        controlador.PlayDialog(audio, "Este es un silbato en forma de perro.\nPuedes explorarlo… gíralo y acércate para ver sus detalles.");
-        yield return new WaitForSeconds(audio.length + tiempoEspera);
+        controlador.PlayDialog(audioActual, "Este es un silbato en forma de perro.\nPuedes explorarlo… gíralo y acércate para ver sus detalles.");
+        yield return new WaitForSeconds(audioActual.length + tiempoEspera);
 
         // Advertencia de manipulación
-        audio = audiosIntroducciónAntesDeRuptura[2];
+        audioActual = audiosIntroducciónAntesDeRuptura[2];
         controlador.SetExpresion(ExpresionesAsistente.deHecho1);
-        controlador.PlayDialog(audio, "Pero… hazlo con cuidado.");
-        yield return new WaitForSeconds(audio.length + tiempoEspera);
+        controlador.PlayDialog(audioActual, "Pero… hazlo con cuidado.");
+        yield return new WaitForSeconds(audioActual.length + tiempoEspera);
+
+        yield return controlador.ClearAsistente();
     }
     public IEnumerator RupturaModelo()
     {
         if (!getController()) yield break;
 
-        AudioClip audio;
-
         // Susto por ruptura
-        audio = audiosRuptura[0];
+        audioActual = audiosRuptura[0];
         controlador.SetExpresion(ExpresionesAsistente.sorpresa);
-        controlador.PlayDialog(audio, "Oh… se ha roto.");
-        yield return new WaitForSeconds(audio.length + tiempoEspera);
+        controlador.PlayDialog(audioActual, "Oh… se ha roto.");
+        yield return new WaitForSeconds(audioActual.length + tiempoEspera);
 
         // Explicación de fragilidad
-        audio = audiosRuptura[1];
+        audioActual = audiosRuptura[1];
         controlador.SetExpresion(ExpresionesAsistente.explicando1);
-        controlador.PlayDialog(audio, "Las piezas reales son frágiles… y únicas.\nPor eso solo pueden ser manipuladas por expertos.");
-        yield return new WaitForSeconds(audio.length + tiempoEspera);
+        controlador.PlayDialog(audioActual, "Las piezas reales son frágiles… y únicas.\nPor eso solo pueden ser manipuladas por expertos.");
+        yield return new WaitForSeconds(audioActual.length + tiempoEspera);
 
         // Propuesta de reparación
-        audio = audiosRuptura[2];
+        audioActual = audiosRuptura[2];
         controlador.SetExpresion(ExpresionesAsistente.amable2);
-        controlador.PlayDialog(audio, "Pero aún podemos recuperarla.\nTe ayudaré a reconstruirla mientras descubrimos su historia.");
-        yield return new WaitForSeconds(audio.length + tiempoEspera);
+        controlador.PlayDialog(audioActual, "Pero aún podemos recuperarla.\nTe ayudaré a reconstruirla mientras descubrimos su historia.");
+        yield return new WaitForSeconds(audioActual.length + tiempoEspera);
 
         // Acompañamiento
-        audio = audiosRuptura[3];
+        audioActual = audiosRuptura[3];
         controlador.SetExpresion(ExpresionesAsistente.idle2);
-        controlador.PlayDialog(audio, "Te acompañaré a descubrir la historia de esta pieza.");
-        yield return new WaitForSeconds(audio.length + tiempoEspera);
+        controlador.PlayDialog(audioActual, "Te acompañaré a descubrir la historia de esta pieza.");
+        yield return new WaitForSeconds(audioActual.length + tiempoEspera);
+
+        yield return controlador.ClearAsistente();
     }
     public IEnumerator Visor3DLibre()
     {
         if (!getController()) yield break;
-        
-        AudioClip audio;
 
-        audio = audiosVisor3DLibre[0];
+        audioActual = audiosVisor3DLibre[0];
         controlador.SetExpresion(ExpresionesAsistente.explicando2);
-        controlador.PlayDialog(audio, "¡Genial! Has reconstruido la pieza y comprendido su historia cultural.");
-        yield return new WaitForSeconds(audio.length + tiempoEspera);
+        controlador.PlayDialog(audioActual, "¡Genial! Has reconstruido la pieza y comprendido su historia cultural.");
+        yield return new WaitForSeconds(audioActual.length + tiempoEspera);
 
-        audio = audiosVisor3DLibre[0];
+        audioActual = audiosVisor3DLibre[1];
         controlador.SetExpresion(ExpresionesAsistente.idle2);
-        controlador.PlayDialog(audio, "Ahora puedes observarla libremente… ya no se romperá.");
-        yield return new WaitForSeconds(audio.length + tiempoEspera);
+        controlador.PlayDialog(audioActual, "Ahora puedes observarla libremente… ya no se romperá.");
+        yield return new WaitForSeconds(audioActual.length + tiempoEspera);
+
+        yield return controlador.ClearAsistente();
     }
 }

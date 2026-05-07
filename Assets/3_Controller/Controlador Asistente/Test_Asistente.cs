@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using TMPro;
 
 /// <summary>
 /// Script de prueba para el ControladorAsistente.
@@ -8,6 +9,7 @@ using System.Collections;
 public class Test_Asistente : MonoBehaviour
 {
     [SerializeField] AudioClip audioPrueba;
+    [SerializeField] TMP_Text titulo;
 
     private void Start()
     {
@@ -62,15 +64,17 @@ public class Test_Asistente : MonoBehaviour
 
     private IEnumerator testSecuencias()
     {
+        yield return new WaitForSeconds(2.5f);
+
         ControladorAsistente asistente = ControladorAsistente.Instance;
 
-        Debug.Log("[Test_Asistente] Ejecutando IntroducciónAntesDeRuptura");
+        titulo.text = "Ejecutando IntroducciónAntesDeRuptura";
         yield return asistente.PlaySequence(ConfiguracionAsistente.Instance.Secuencias.IntroducciónAntesDeRuptura());
 
-        Debug.Log("[Test_Asistente] Ejecutando RupturaModelo");
+        titulo.text = "Ejecutando RupturaModelo";
         yield return asistente.PlaySequence(ConfiguracionAsistente.Instance.Secuencias.RupturaModelo());
 
-        Debug.Log("[Test_Asistente] Ejecutando Visor3DLibre");
+        titulo.text = "Ejecutando Visor3DLibre";
         yield return asistente.PlaySequence(ConfiguracionAsistente.Instance.Secuencias.Visor3DLibre());
 
         Debug.Log("[Test_Asistente] ===== TODAS LAS PRUEBAS COMPLETADAS =====");
