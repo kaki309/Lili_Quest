@@ -449,6 +449,8 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 69392bad07fca3b4bab8338282ab74fc, type: 3}
   - expresion: 3
     sprite: {fileID: 21300000, guid: 5241cdc066aec29449af261fc98842b3, type: 3}
+  feedbackCorrectoTrivia: []
+  feedbackIncorrectoTrivia: []
 --- !u!4 &1002786026
 Transform:
   m_ObjectHideFlags: 0
@@ -476,7 +478,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 41e9f4a4914139642858049b289acb5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  audioPrueba: {fileID: 8300000, guid: c3f9df622d12e23459cd8f6fcc0b6eea, type: 3}
+  audioPantallaInicio: {fileID: 8300000, guid: 43a215ee0210c7d4bb4c64ec39c927b5, type: 3}
+  "audiosIntroducci\xF3nAntesDeRuptura":
+  - {fileID: 8300000, guid: eb4a54bbe6a0108489e9fda59de88536, type: 3}
+  - {fileID: 8300000, guid: 0a736713e8253fb4abe7d1a334675062, type: 3}
+  audiosRuptura:
+  - {fileID: 8300000, guid: f13d7fe590373b24e8b9449fe78d2baa, type: 3}
+  - {fileID: 8300000, guid: 901fca5af0f684e4792c08c9cd9cb9b9, type: 3}
+  - {fileID: 8300000, guid: c3f9df622d12e23459cd8f6fcc0b6eea, type: 3}
+  audioInicioNarrativa: {fileID: 8300000, guid: 3456efc0044edab4a9c911c8000ff2b8, type: 3}
+  audioCierreNarrativa: {fileID: 8300000, guid: a73ff6e60f9485541b9626e933691085, type: 3}
+  audioVisor3DLibre: {fileID: 8300000, guid: ddc06e42f0cf67d46bca53e0f9290e61, type: 3}
 --- !u!1 &1087619586
 GameObject:
   m_ObjectHideFlags: 0
