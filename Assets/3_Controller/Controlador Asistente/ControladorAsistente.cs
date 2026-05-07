@@ -15,7 +15,6 @@ public class ControladorAsistente : MonoBehaviour
 
     [SerializeField] Image imagenAsistente;
     [SerializeField] TMP_Text subtituloText;
-    [SerializeField] AudioSource audioSourceAsistente;
 
     CanvasGroup canvasGroupImagen;
     bool estaReproduciendo = false;
@@ -101,6 +100,7 @@ public class ControladorAsistente : MonoBehaviour
         }
 
         yield return ExecuteSequenceCoroutine(secuencia);
+        yield return ClearAsistente();
     }
 
     /// <summary>
@@ -109,10 +109,7 @@ public class ControladorAsistente : MonoBehaviour
     /// </summary>
     public IEnumerator ClearAsistente()
     {
-        if (audioSourceAsistente.isPlaying)
-        {
-            audioSourceAsistente.Stop();
-        }
+        AudioController.Instance.StopDialogue();
         subtituloText.text = "";
         subtituloText.gameObject.SetActive(false);
         yield return HideExpresion();
@@ -135,17 +132,6 @@ public class ControladorAsistente : MonoBehaviour
         if (subtituloText == null)
         {
             Debug.LogError("[ControladorAsistente] subtituloText no asignada en el inspector.");
-        }
-
-        if (audioSourceAsistente == null)
-        {
-            // Intenta obtener AudioSource del mismo GameObject
-            audioSourceAsistente = GetComponent<AudioSource>();
-            if (audioSourceAsistente == null)
-            {
-                Debug.LogWarning("[ControladorAsistente] audioSource no encontrado. Se creará uno nuevo.");
-                audioSourceAsistente = gameObject.AddComponent<AudioSource>();
-            }
         }
     }
 
@@ -246,8 +232,7 @@ public class ControladorAsistente : MonoBehaviour
         subtituloText.gameObject.SetActive(true);
 
         // 2. Reproducir audio
-        audioSourceAsistente.clip = audioClip;
-        audioSourceAsistente.Play();
+        AudioController.Instance.PlayDialogue(audioClip);
 
         // 3. Esperar a que termine el audio y otro poquito
         yield return new WaitForSeconds(audioClip.length + ConfiguracionAsistente.Instance.EsperaDespuesDeAudio);

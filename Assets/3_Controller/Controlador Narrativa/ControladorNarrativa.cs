@@ -1,18 +1,24 @@
 using System.Collections;
+using System.Linq;
 using UnityEngine;
 
 public class ControladorNarrativa : MonoBehaviour
 {
-    GestorInterfazPantallaNarrativa UI;
-    bool isAnsweringTrivia = false;
-    [Header("Sonidos del sistema")]
+    [Header("SFX")]
     [SerializeField] AudioClip respuestaCorrecta;
     [SerializeField] AudioClip respuestaIncorrecta;
-    [SerializeField] AudioClip laiaFelicitacion;
+
+    EntradaAudioClipSprite[] laiaFelicitaciones;
+    EntradaAudioClipSprite[] laiaIntentaNuevamente;
+    GestorInterfazPantallaNarrativa UI;
+    bool isAnsweringTrivia = false;
 
     void Start()
     {
+        laiaFelicitaciones = ConfiguracionAsistente.Instance.feedbackCorrectoTrivia;
+        laiaIntentaNuevamente = ConfiguracionAsistente.Instance.feedbackIncorrectoTrivia;
         UI = GestorInterfazPantallaNarrativa.Instance;
+
         TurnOffEveryUIElement();
         StartCoroutine(SimularSecuencia());
     }
@@ -22,7 +28,7 @@ public class ControladorNarrativa : MonoBehaviour
         UI.CanvasTrivia.SetActive(false);
     }
     IEnumerator SimularSecuencia()
-    {   
+    {
         ControladorAsistente asistente = ControladorAsistente.Instance;
 
         yield return new WaitForSeconds(3);
@@ -34,8 +40,8 @@ public class ControladorNarrativa : MonoBehaviour
         UI.Foto.SetActive(false);
 
         asistente.SetExpresion(ExpresionesAsistente.idle1);
-        asistente.PlayDialog(laiaFelicitacion, "Primer texto de la narrativa");
-        yield return new WaitForSeconds(laiaFelicitacion.length);
+        asistente.PlayDialog(laiaFelicitaciones[0].audioClip, "Primer texto de la narrativa");
+        yield return new WaitForSeconds(laiaFelicitaciones[0].audioClip.length);
         asistente.HideExpresion();
 
         yield return new WaitForSeconds(3);
@@ -50,25 +56,54 @@ public class ControladorNarrativa : MonoBehaviour
 
         finishSecuence();
     }
-    void finishSecuence()
+    public void answerTriviaCorrectly() => StartCoroutine(answerCorrect());
+    public void answerTriviaIncorrectly() => StartCoroutine(answerIncorrect());
+    IEnumerator answerCorrect()
     {
-        ControladorFlujo.Instance.finishNarrativaState();
+        EntradaAudioClipSprite laiaFeedback = getRandomLaiaFeedback(laiaFelicitaciones);
+        AudioClip audio = laiaFeedback.audioClip;
+        Sprite image = laiaFeedback.sprite;
+
+        AudioController.Instance.PlaySFX(respuestaCorrecta);
+        // Sprite LaIA
+        UI.LaIaInTrivia.sprite = image;
+        UI.LaIaInTrivia.GetComponent<Animator>().SetTrigger("moveIn");
+
+        AudioController.Instance.PlayDialogue(audio);
+
+        yield return new WaitForSeconds(audio.length + 1f);
+
+        UI.LaIaInTrivia.GetComponent<Animator>().SetTrigger("moveOut");
+        Invoke(nameof(setTriviaAsCompleted), 2);
     }
-    public void answerTriviaCorrectly()
+    IEnumerator answerIncorrect()
     {
-        UI.AudioSource.PlayOneShot(respuestaCorrecta);
-        UI.LaIaHappyInTrivia.gameObject.SetActive(true);
-        UI.LaIaHappyInTrivia.GetComponent<Animator>().SetTrigger("moveIn");
-        Invoke(nameof(setTriviaAsCompleted), 4);
-        UI.AudioSource.PlayOneShot(laiaFelicitacion);
-    }
-    public void answerTriviaIncorrectly()
-    {
-        UI.AudioSource.clip = respuestaIncorrecta;
-        UI.AudioSource.Play();
+        EntradaAudioClipSprite laiaFeedback = getRandomLaiaFeedback(laiaIntentaNuevamente);
+        AudioClip audio = laiaFeedback.audioClip;
+        Sprite image = laiaFeedback.sprite;
+
+        AudioController.Instance.PlaySFX(respuestaIncorrecta);
+        // Sprite LaIA
+        UI.LaIaInTrivia.sprite = image;
+        UI.LaIaInTrivia.GetComponent<Animator>().SetTrigger("moveIn");
+
+        AudioController.Instance.PlayDialogue(audio);
+
+        yield return new WaitForSeconds(audio.length + 1f);
+
+        UI.LaIaInTrivia.GetComponent<Animator>().SetTrigger("moveOut");
     }
     void setTriviaAsCompleted()
     {
         isAnsweringTrivia = false;
+    }
+    void finishSecuence()
+    {
+        ControladorFlujo.Instance.FinishNarrativaState();
+    }
+    EntradaAudioClipSprite getRandomLaiaFeedback(EntradaAudioClipSprite[] entrada)
+    {
+        int index = Random.Range(0, entrada.Length);
+        return entrada[index];
     }
 }

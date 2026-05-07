@@ -5,8 +5,8 @@ public class GestorInterfazPantallasVisor3D : MonoBehaviour
     public static GestorInterfazPantallasVisor3D Instance;
 
     [SerializeField] GameObject _contenedorModelo3D;
-    [SerializeField] GameObject _recuadroLaia;
-    [SerializeField] AudioSource audioSource;
+    [SerializeField] GameObject _fondoNegro;
+    [SerializeField] AudioClip _audioFractura;
 
     void Awake()
     {
@@ -14,6 +14,6 @@ public class GestorInterfazPantallasVisor3D : MonoBehaviour
     }
 
     public GameObject ContenedorModelo3D => _contenedorModelo3D;
-    public AudioSource AudioSource => audioSource;
-    public GameObject RecuadroLaia => _recuadroLaia;
+    public GameObject FondoNegro => _fondoNegro;
+    public AudioClip AudioFractura => _audioFractura;
 }

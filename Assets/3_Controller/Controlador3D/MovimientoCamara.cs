@@ -81,9 +81,11 @@ public class MovimientoCamara : MonoBehaviour
             {
                 fractureScript.ApplyExplosionForce();
                 particulas.Play();
+                AudioClip audioFractura = GestorInterfazPantallasVisor3D.Instance.AudioFractura;
+                AudioController.Instance.PlaySFX(audioFractura);
             }
             yaFracturo = true;
-            ControladorFlujo.Instance.SetModelFragmentedState(true);
+            ControladorFlujo.Instance.FragmentModel();
         }
     }
 

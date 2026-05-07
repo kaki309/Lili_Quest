@@ -2367,7 +2367,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2046235310}
   - component: {fileID: 2046235309}
-  - component: {fileID: 2046235308}
   m_Layer: 0
   m_Name: ControladorAudio
   m_TagString: Untagged
@@ -2375,21 +2374,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &2046235308
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2046235307}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 13be88a45387fb54ebeae4a12fc1f1fd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  audioSFX: {fileID: 8300000, guid: f57a4e9c071a3344bacb2847d0a1e50f, type: 3}
-  audioMusica: {fileID: 8300000, guid: 6f0e4d8cf8f3f994b8cceba9e2505da2, type: 3}
-  audioDialogo: {fileID: 8300000, guid: c7e2fff65dcd7ea4c964b5e2d03b3fc7, type: 3}
 --- !u!114 &2046235309
 MonoBehaviour:
   m_ObjectHideFlags: 0

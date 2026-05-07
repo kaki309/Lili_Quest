@@ -51,8 +51,6 @@ public class SecuenciasAsistente : MonoBehaviour
         controlador.SetExpresion(ExpresionesAsistente.deHecho1);
         controlador.PlayDialog(audioActual, "Pero… hazlo con cuidado.");
         yield return new WaitForSeconds(audioActual.length + tiempoEspera);
-
-        yield return controlador.ClearAsistente();
     }
     public IEnumerator RupturaModelo()
     {
@@ -81,8 +79,6 @@ public class SecuenciasAsistente : MonoBehaviour
         controlador.SetExpresion(ExpresionesAsistente.idle2);
         controlador.PlayDialog(audioActual, "Te acompañaré a descubrir la historia de esta pieza.");
         yield return new WaitForSeconds(audioActual.length + tiempoEspera);
-
-        yield return controlador.ClearAsistente();
     }
     public IEnumerator Visor3DLibre()
     {
@@ -97,7 +93,5 @@ public class SecuenciasAsistente : MonoBehaviour
         controlador.SetExpresion(ExpresionesAsistente.idle2);
         controlador.PlayDialog(audioActual, "Ahora puedes observarla libremente… ya no se romperá.");
         yield return new WaitForSeconds(audioActual.length + tiempoEspera);
-
-        yield return controlador.ClearAsistente();
     }
 }

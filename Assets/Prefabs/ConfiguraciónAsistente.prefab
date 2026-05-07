@@ -79,13 +79,19 @@ MonoBehaviour:
   - expresion: 14
     sprite: {fileID: 21300000, guid: be948301d54d5394f849b20a6e2a4074, type: 3}
   feedbackCorrectoTrivia:
-  - {fileID: 8300000, guid: 05761f95ebde0fa4f882d0c6b1b246ee, type: 3}
-  - {fileID: 8300000, guid: 3fab4b888d869484e98ad4d9e7ad7617, type: 3}
-  - {fileID: 8300000, guid: 7975ccab1c3f9b549b789f82a8d3480c, type: 3}
+  - audioClip: {fileID: 8300000, guid: 3fab4b888d869484e98ad4d9e7ad7617, type: 3}
+    sprite: {fileID: 21300000, guid: be948301d54d5394f849b20a6e2a4074, type: 3}
+  - audioClip: {fileID: 8300000, guid: 7975ccab1c3f9b549b789f82a8d3480c, type: 3}
+    sprite: {fileID: 21300000, guid: 2d903ec610f4a6b4c8afce7d4892ebe0, type: 3}
+  - audioClip: {fileID: 8300000, guid: 05761f95ebde0fa4f882d0c6b1b246ee, type: 3}
+    sprite: {fileID: 21300000, guid: be948301d54d5394f849b20a6e2a4074, type: 3}
   feedbackIncorrectoTrivia:
-  - {fileID: 8300000, guid: 8df6e05b81c3658449e9c37afdfd7174, type: 3}
-  - {fileID: 8300000, guid: d4e8b9777d7cbaa4285134e9b0dbb6ce, type: 3}
-  - {fileID: 8300000, guid: f17988680300fbd408f3c75e1f07cea3, type: 3}
+  - audioClip: {fileID: 8300000, guid: f17988680300fbd408f3c75e1f07cea3, type: 3}
+    sprite: {fileID: 21300000, guid: 9fa83cddb02d0a24486ce942bb2b8baa, type: 3}
+  - audioClip: {fileID: 8300000, guid: d4e8b9777d7cbaa4285134e9b0dbb6ce, type: 3}
+    sprite: {fileID: 21300000, guid: 3b524942ec5ea0d46bd17f3e986b78dd, type: 3}
+  - audioClip: {fileID: 8300000, guid: 8df6e05b81c3658449e9c37afdfd7174, type: 3}
+    sprite: {fileID: 21300000, guid: f1ebb3dcb02643f44b77786d0ac9c005, type: 3}
 --- !u!114 &6550846664061003688
 MonoBehaviour:
   m_ObjectHideFlags: 0

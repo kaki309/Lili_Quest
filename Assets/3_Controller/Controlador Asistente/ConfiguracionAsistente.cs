@@ -8,8 +8,8 @@ public class ConfiguracionAsistente : MonoBehaviour
     [SerializeField] float _duracionFadeImagen = 0.5f;
     [SerializeField] float _esperaDespuesDeAudio = 0.3f;
     [SerializeField] EntradaExpresionSprite[] expresionesYsprites;
-    public AudioClip[] feedbackCorrectoTrivia;
-    public AudioClip[] feedbackIncorrectoTrivia;
+    public EntradaAudioClipSprite[] feedbackCorrectoTrivia;
+    public EntradaAudioClipSprite[] feedbackIncorrectoTrivia;
     
 
     public SecuenciasAsistente Secuencias {get; private set;}
@@ -71,6 +71,14 @@ public class ConfiguracionAsistente : MonoBehaviour
 public class EntradaExpresionSprite
 {
     public ExpresionesAsistente expresion;
+    public Sprite sprite;
+}
+
+
+[System.Serializable]
+public class EntradaAudioClipSprite
+{
+    public AudioClip audioClip;
     public Sprite sprite;
 }
 /// <summary>

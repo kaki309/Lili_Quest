@@ -8,11 +8,10 @@ public class GestorInterfazPantallaNarrativa : MonoBehaviour
 {
     public static GestorInterfazPantallaNarrativa Instance;
     [SerializeField] GameObject _foto;
-    [SerializeField] AudioSource _audioSource;
 
     [Header("Trivia")]
     [SerializeField] GameObject _canvasTrivia;
-    [SerializeField] Image _laiaHappyInTrivia;
+    [SerializeField] Image _laiaInTrivia;
 
     void Awake()
     {
@@ -20,6 +19,5 @@ public class GestorInterfazPantallaNarrativa : MonoBehaviour
     }
     public GameObject Foto => _foto;
     public GameObject CanvasTrivia => _canvasTrivia;
-    public Image LaIaHappyInTrivia => _laiaHappyInTrivia;
-    public AudioSource AudioSource => _audioSource;
+    public Image LaIaInTrivia => _laiaInTrivia;
 }

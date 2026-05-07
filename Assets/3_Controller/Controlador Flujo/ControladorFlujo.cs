@@ -40,7 +40,6 @@ public class ControladorFlujo : MonoBehaviour
     SensorData interactionData;
     bool isInitializingState = false;
     bool isSwitchingState = false;
-    bool hasFragmentedModel = false;
     bool isFlowPaused = false;
     bool isWaitingForArduino = false;
 
@@ -97,6 +96,9 @@ public class ControladorFlujo : MonoBehaviour
     // ============================================================
     void RunCurrentStateLogic()
     {
+        // Solamente se necesita realizar acciones constantes mientras se espera que se detecte
+        // un ID válido o cuando se está esperando que la experiencia sea iniciada
+        // Los demás estados se determinan y se iteran en base a eventos definidos
         switch (currentState)
         {
             case ControllerState.EsperandoID:
@@ -105,18 +107,6 @@ public class ControladorFlujo : MonoBehaviour
 
             case ControllerState.EsperandoInicioExperiencia:
                 UpdateEsperandoInicioExperiencia();
-                break;
-
-            case ControllerState.InteraccionRuptura:
-                UpdateInteraccionRuptura();
-                break;
-
-            case ControllerState.SecuenciaNarrativa:
-                UpdateSecuenciaNarrativa();
-                break;
-
-            case ControllerState.Visor3D:
-                UpdateVisor3D();
                 break;
 
             default:
@@ -254,11 +244,11 @@ public class ControladorFlujo : MonoBehaviour
         if (!DoesCurrentExperienceModelExists()) yield break;
 
         // Esperamos que el gestor de interfaz esté creado en escena
-        yield return StartCoroutine(waitForObjectToBeOnScene<GestorInterfazPantallasVisor3D>());
+        yield return waitForObjectToBeOnScene<GestorInterfazPantallasVisor3D>();
 
         // Desactivamos el movimiento de cámara -> ES TEMPORAL
-        MovimientoCamara camara = Camera.main.GetComponent<MovimientoCamara>();
-        camara.enabled = false;
+        MovimientoCamara movimientoCamara = Camera.main.GetComponent<MovimientoCamara>();
+        movimientoCamara.enabled = false;
 
         // Instanciamos el modelo 3D
         GameObject container = GestorInterfazPantallasVisor3D.Instance.ContenedorModelo3D;
@@ -274,30 +264,34 @@ public class ControladorFlujo : MonoBehaviour
         // Generamos las fracturas
         model.GetComponent<Fractura>().CauseFracture();
         // Actualizamos las referencias en la cámara
-        camara.SetObjetivo(model);
-
-        //
-        // El movimiento de cámara se activa nuevamente mediante los CALLBACKS de la fractura del modelo.
-        //
+        movimientoCamara.SetObjetivo(model);
 
         // Avisamos a la pantalla de carga que ya terminó el proceso
         onDone?.Invoke();
+        yield return null;
+
+        // Activamos pantalla negra detrás del asistente
+        GestorInterfazPantallasVisor3D.Instance.FondoNegro.SetActive(true);
+        // Ejecutamos secuencia de introducción del asistente
+        yield return ControladorAsistente.Instance.PlaySequence(ConfiguracionAsistente.Instance.Secuencias.IntroducciónAntesDeRuptura());
+        yield return new WaitForSeconds(0.6f);
+        // Desactivamos pantalla negra
+        GestorInterfazPantallasVisor3D.Instance.FondoNegro.SetActive(false);
+        // Activamos movimiento de cámara nuevamente
+        movimientoCamara.enabled = true;
 
         isInitializingState = false;
     }
-    void UpdateInteraccionRuptura()
-    {
-        // Si el modelo aún no ha sido roto entonces no ejecute nada
-        if (!hasFragmentedModel) return;
-        // Iniciar la transición
-        StartCoroutine(TransitionToSecuenciaNarrativa());
-    }
+    /// <summary>
+    /// Método llamado desde el script movimientoCamara para avisar ruptura del modelo    
+    /// </summary>
+    public void FragmentModel() => StartCoroutine(TransitionToSecuenciaNarrativa());
     IEnumerator TransitionToSecuenciaNarrativa()
     {
         isSwitchingState = true;
 
         // Ejecutamos corrutina de salida y esperamos su terminación (por el yield return)
-        yield return StartCoroutine(ExitInteraccionRuptura());
+        yield return ExitInteraccionRuptura();
 
         Debug.Log("[ControladorFlujo] Transición a: SecuenciaNarrativa");
         currentState = ControllerState.SecuenciaNarrativa;
@@ -313,12 +307,10 @@ public class ControladorFlujo : MonoBehaviour
     {
         Debug.Log("[ControladorFlujo] Saliendo del estado: InteraccionRuptura");
 
+        // Pantalla negra
+        GestorInterfazPantallasVisor3D.Instance.FondoNegro.SetActive(true);
         // Secuencia de asistente
         yield return ControladorAsistente.Instance.PlaySequence(ConfiguracionAsistente.Instance.Secuencias.RupturaModelo());
-
-        // Restaurar bandera para habilitar nuevas interacciones con Lili Quest en una única sesión
-        // (Es decir sin cerrar el programa)
-        hasFragmentedModel = false;
     }
     #endregion
 
@@ -335,25 +327,16 @@ public class ControladorFlujo : MonoBehaviour
         yield return StartCoroutine(waitForObjectToBeOnScene<GestorInterfazPantallaNarrativa>());
         isInitializingState = false;
     }
-
-    void UpdateSecuenciaNarrativa()
-    {
-        // TODO: Implementar lógica de actualización para SecuenciaNarrativa
-        // - Presentación de contenido histórico
-        // - Reprodución de diálogos del asistente
-        // - Detección de fin de secuencia
-    }
+    /// <summary>
+    /// Método llamado desde el script ControladorNarrativa para avisar terminación de toda la secuencia
+    /// </summary>
+    public void FinishNarrativaState() => TransitionToVisor3D();
     void TransitionToVisor3D()
     {
         ExitSecuenciaNarrativa();
         currentState = ControllerState.Visor3D;
-        StartCoroutine(InitializeVisor3D());
         Debug.Log("[ControladorFlujo] Transición a: Visor3D");
-
-        if (LanzadorEscenas.Instance != null)
-        {
-            LanzadorEscenas.Instance.cargarEscena(EscenasSistema.Visor3D);
-        }
+        LanzadorEscenas.Instance.cargarEscenaYEjecutar(EscenasSistema.Visor3D, (onDone) => StartCoroutine(InitializeVisor3D(onDone)));
     }
     void ExitSecuenciaNarrativa()
     {
@@ -365,7 +348,7 @@ public class ControladorFlujo : MonoBehaviour
     // ESTADO: VISOR 3D 
     // ============================================================
     #region ESTADO: VISOR 3D 
-    IEnumerator InitializeVisor3D()
+    IEnumerator InitializeVisor3D(Action onDone)
     {
         isInitializingState = true;
         Debug.Log("[ControladorFlujo] Inicializando estado: Visor3D");
@@ -375,56 +358,43 @@ public class ControladorFlujo : MonoBehaviour
         // Esperamos que el gestor de interfaz esté creado en escena
         yield return StartCoroutine(waitForObjectToBeOnScene<GestorInterfazPantallasVisor3D>());
 
-        // Activamos el movimiento de cámara y desactivamos ruptura de modelo
-        MovimientoCamara camara = Camera.main.GetComponent<MovimientoCamara>();
-        camara.enabled = true;
-        camara.activateFracture = false;
+        // Desactivamos movimiento de cámara y fractura
+        MovimientoCamara movimientoCamara = Camera.main.GetComponent<MovimientoCamara>();
+        movimientoCamara.enabled = false;
+        movimientoCamara.activateFracture = false;
 
         // Instanciamos el modelo 3D
         GameObject container = GestorInterfazPantallasVisor3D.Instance.ContenedorModelo3D;
         LoadModelAsync(container, currentExperienceData.modeloPath);
         while (isFlowPaused) yield return null;
 
-        // Obtenemos el modelo instanciado
+        // Obtenemos el modelo instanciado y actualizamos referencia en cámara
         GameObject model = container.transform.GetChild(0).gameObject;
-        // Actualizamos la referencia en la cámara
-        camara.GetComponent<MovimientoCamara>().SetObjetivo(model);
+        movimientoCamara.SetObjetivo(model);
+
+        // Avisamos a la pantalla de carga que ya terminó el proceso
+        onDone?.Invoke();
+        yield return null;
+
+        // Activamos pantalla negra detrás del asistente
+        GestorInterfazPantallasVisor3D.Instance.FondoNegro.SetActive(true);
+        // Ejecutamos secuencia de introducción del asistente
+        yield return ControladorAsistente.Instance.PlaySequence(ConfiguracionAsistente.Instance.Secuencias.Visor3DLibre());
+        yield return new WaitForSeconds(0.6f);
+        // Desactivamos pantalla negra
+        GestorInterfazPantallasVisor3D.Instance.FondoNegro.SetActive(false);
+        // Activamos movimiento de cámara nuevamente
+        movimientoCamara.enabled = true;
+
         // Salimos de la inicialización
         isInitializingState = false;
         yield break;
     }
-
-    private void UpdateVisor3D()
-    {
-
-    }
-
     private void ExitVisor3D()
     {
         Debug.Log("[ControladorFlujo] Saliendo del estado: Visor3D");
     }
     #endregion
-
-
-    // ============================================================
-    // MÉTODOS PÚBLICOS
-    // ============================================================
-    #region MÉTODOS PÚBLICOS
-    public void SetModelFragmentedState(bool value)
-    {
-        hasFragmentedModel = value;
-        GestorInterfazPantallasVisor3D.Instance.AudioSource.Play();
-    }
-    public void finishNarrativaState()
-    {
-        TransitionToVisor3D();
-    }
-    public void setSystemFlow(bool state)
-    {
-        isFlowPaused = state;
-    }
-    #endregion
-
 
     // ============================================================
     // MÉTODOS PRIVADOS
@@ -469,10 +439,6 @@ public class ControladorFlujo : MonoBehaviour
     /// </summary>
     IEnumerator waitForObjectToBeOnScene<T>() where T : UnityEngine.Object
     {
-        yield return StartCoroutine(searchObject<T>());
-    }
-    IEnumerator searchObject<T>() where T : UnityEngine.Object
-    {
         T obj = null;
 
         while (obj == null)
@@ -481,7 +447,6 @@ public class ControladorFlujo : MonoBehaviour
             yield return null;
         }
     }
-
     bool DoesCurrentExperienceModelExists()
     {
         if (currentExperienceData == null || string.IsNullOrEmpty(currentExperienceData.modeloPath))
@@ -489,10 +454,7 @@ public class ControladorFlujo : MonoBehaviour
             Debug.LogError("[ControladorFlujo] La información de la experiencia o el modelo 3D no es válida");
             return false;
         }
-        else
-        {
-            return true;
-        }
+        else { return true; }
     }
 
     void CheckIfExperienceIsInterrupted()
