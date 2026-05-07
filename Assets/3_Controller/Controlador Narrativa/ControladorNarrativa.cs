@@ -33,7 +33,7 @@ public class ControladorNarrativa : MonoBehaviour
 
         UI.Foto.SetActive(false);
 
-        asistente.SetExpresion(ExpresionesAsistente.Feliz);
+        asistente.SetExpresion(ExpresionesAsistente.idle1);
         asistente.PlayDialog(laiaFelicitacion, "Primer texto de la narrativa");
         yield return new WaitForSeconds(laiaFelicitacion.length);
         asistente.HideExpresion();

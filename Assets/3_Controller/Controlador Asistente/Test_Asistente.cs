@@ -30,14 +30,14 @@ public class Test_Asistente : MonoBehaviour
 
         // ============ PRUEBA 1: Establecer expresión sin audio ============
         Debug.Log("[Test_Asistente] PRUEBA 1: Establecer expresión (Happy) y ocultar asistente");
-        asistente.SetExpresion(ExpresionesAsistente.Feliz);
+        asistente.SetExpresion(ExpresionesAsistente.idle1);
         yield return new WaitForSeconds(3f);
         asistente.HideExpresion();
         yield return new WaitForSeconds(4f);
 
         // ============ PRUEBA 2: Reproducir diálogo ============
         Debug.Log("[Test_Asistente] PRUEBA 2: Reproducir audio y establecer imagen (Happy), luego ocultar");
-        asistente.SetExpresion(ExpresionesAsistente.Feliz);
+        asistente.SetExpresion(ExpresionesAsistente.idle1);
         asistente.PlayDialog(audioClip, "Este es el primer diálogo de prueba.");
         yield return new WaitForSeconds(audioClip.length + 3f);
         asistente.HideExpresion();
@@ -45,9 +45,9 @@ public class Test_Asistente : MonoBehaviour
 
         // ============ PRUEBA 3: Cambiar expresión durante reproducción ============
         Debug.Log("[Test_Asistente] PRUEBA 3: Establecer expresión y cambiarla");
-        asistente.SetExpresion(ExpresionesAsistente.Preocupado);
+        asistente.SetExpresion(ExpresionesAsistente.idle1);
         yield return new WaitForSeconds(3f);
-        asistente.SetExpresion(ExpresionesAsistente.Feliz);
+        asistente.SetExpresion(ExpresionesAsistente.idle1);
         yield return new WaitForSeconds(3f);
         asistente.HideExpresion();
         yield return new WaitForSeconds(4f);

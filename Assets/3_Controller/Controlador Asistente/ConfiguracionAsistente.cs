@@ -7,7 +7,7 @@ public class ConfiguracionAsistente : MonoBehaviour
 
     [SerializeField] float _duracionFadeImagen = 0.5f;
     [SerializeField] float _esperaDespuesDeAudio = 0.3f;
-    [SerializeField] EntradaExpresionSprite[] spritesExpresiones;
+    [SerializeField] EntradaExpresionSprite[] expresionesYsprites;
     public AudioClip[] feedbackCorrectoTrivia;
     public AudioClip[] feedbackIncorrectoTrivia;
     
@@ -44,13 +44,13 @@ public class ConfiguracionAsistente : MonoBehaviour
     /// </summary>
     public Sprite GetExpresionSprite(ExpresionesAsistente expresion)
     {
-        if (spritesExpresiones == null || spritesExpresiones.Length == 0)
+        if (expresionesYsprites == null || expresionesYsprites.Length == 0)
         {
             Debug.LogError("[ConfiguracionAsistente] expresionesSprites no configurada.");
             return null;
         }
 
-        foreach (var entry in spritesExpresiones)
+        foreach (var entry in expresionesYsprites)
         {
             if (entry.expresion == expresion)
             {
@@ -79,10 +79,21 @@ public class EntradaExpresionSprite
 /// </summary>
 public enum ExpresionesAsistente
 {
-    Neutral,
-    Asustado,
-    Preocupado,
-    Feliz,
-    Reflexivo
+    sorpresa,
+    saludo,
+    pensando1,
+    pensando2,
+    ouch,
+    idle1,
+    idle2,
+    feliz,
+    explicando1,
+    explicando2,
+    deHecho1,
+    deHecho2,
+    amable1,
+    amable2,
+    acierto,
+
 }
 #endregion

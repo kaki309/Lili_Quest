@@ -353,15 +353,15 @@ RectTransform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1525127432}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -616, y: -205}
-  m_SizeDelta: {x: 600, y: 600}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 50, y: 0}
+  m_SizeDelta: {x: 700, y: 700}
+  m_Pivot: {x: 0, y: 0}
 --- !u!114 &425311383
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -382,9 +382,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 4daeb77ed29e1234da9049a2644586a0, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -444,11 +444,37 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _duracionFadeImagen: 0.5
   _esperaDespuesDeAudio: 0.3
-  spritesExpresiones:
+  expresionesYsprites:
+  - expresion: 0
+    sprite: {fileID: 21300000, guid: b9080ece41e174c418904a1f8bb572e1, type: 3}
+  - expresion: 1
+    sprite: {fileID: 21300000, guid: 474e6ded33614734b93bfce466bc0cf1, type: 3}
   - expresion: 2
-    sprite: {fileID: 21300000, guid: 69392bad07fca3b4bab8338282ab74fc, type: 3}
+    sprite: {fileID: 21300000, guid: 3b524942ec5ea0d46bd17f3e986b78dd, type: 3}
   - expresion: 3
-    sprite: {fileID: 21300000, guid: 5241cdc066aec29449af261fc98842b3, type: 3}
+    sprite: {fileID: 21300000, guid: f1ebb3dcb02643f44b77786d0ac9c005, type: 3}
+  - expresion: 4
+    sprite: {fileID: 21300000, guid: 9fa83cddb02d0a24486ce942bb2b8baa, type: 3}
+  - expresion: 5
+    sprite: {fileID: 21300000, guid: 4daeb77ed29e1234da9049a2644586a0, type: 3}
+  - expresion: 6
+    sprite: {fileID: 21300000, guid: d1d9097979712904e9073b9f7f2d8325, type: 3}
+  - expresion: 7
+    sprite: {fileID: 21300000, guid: 2d903ec610f4a6b4c8afce7d4892ebe0, type: 3}
+  - expresion: 8
+    sprite: {fileID: 21300000, guid: fac4416f8d146044892411f28b7c4d8f, type: 3}
+  - expresion: 9
+    sprite: {fileID: 21300000, guid: f85baade427a9a142b5dd8174b9b76e8, type: 3}
+  - expresion: 10
+    sprite: {fileID: 21300000, guid: a6c5f0ee64a4b0f4ab68db77c6e39c88, type: 3}
+  - expresion: 11
+    sprite: {fileID: 21300000, guid: 54b0bbd9711d7354cbfed2460c868cf0, type: 3}
+  - expresion: 12
+    sprite: {fileID: 21300000, guid: a26dc72821908c7459ae351c219809a4, type: 3}
+  - expresion: 13
+    sprite: {fileID: 21300000, guid: d55f0097eeb5bbd4aa02d1473720b938, type: 3}
+  - expresion: 14
+    sprite: {fileID: 21300000, guid: be948301d54d5394f849b20a6e2a4074, type: 3}
   feedbackCorrectoTrivia:
   - {fileID: 8300000, guid: 05761f95ebde0fa4f882d0c6b1b246ee, type: 3}
   - {fileID: 8300000, guid: 3fab4b888d869484e98ad4d9e7ad7617, type: 3}
@@ -572,10 +598,10 @@ RectTransform:
   - {fileID: 342349242}
   m_Father: {fileID: 2048080651}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1915327622
 GameObject:
@@ -604,8 +630,8 @@ RectTransform:
   m_GameObject: {fileID: 1915327622}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1.01, y: 1.01, z: 1.01}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 2048080651}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

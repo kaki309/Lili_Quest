@@ -2054,6 +2054,115 @@ Transform:
   m_Children: []
   m_Father: {fileID: 2046235310}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1456001186
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1456001189}
+  - component: {fileID: 1456001188}
+  - component: {fileID: 1456001187}
+  m_Layer: 0
+  m_Name: "Configuraci\xF3nAsistente"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1456001187
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1456001186}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41e9f4a4914139642858049b289acb5f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  audioPantallaInicio: {fileID: 8300000, guid: 43a215ee0210c7d4bb4c64ec39c927b5, type: 3}
+  "audiosIntroducci\xF3nAntesDeRuptura":
+  - {fileID: 8300000, guid: eb4a54bbe6a0108489e9fda59de88536, type: 3}
+  - {fileID: 8300000, guid: 0a736713e8253fb4abe7d1a334675062, type: 3}
+  audiosRuptura:
+  - {fileID: 8300000, guid: f13d7fe590373b24e8b9449fe78d2baa, type: 3}
+  - {fileID: 8300000, guid: 901fca5af0f684e4792c08c9cd9cb9b9, type: 3}
+  - {fileID: 8300000, guid: c3f9df622d12e23459cd8f6fcc0b6eea, type: 3}
+  audioInicioNarrativa: {fileID: 8300000, guid: 3456efc0044edab4a9c911c8000ff2b8, type: 3}
+  audioCierreNarrativa: {fileID: 8300000, guid: a73ff6e60f9485541b9626e933691085, type: 3}
+  audioVisor3DLibre: {fileID: 8300000, guid: ddc06e42f0cf67d46bca53e0f9290e61, type: 3}
+--- !u!114 &1456001188
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1456001186}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c45a41e8c55d86408c8c4cf7aa5e2a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _duracionFadeImagen: 0.5
+  _esperaDespuesDeAudio: 0.3
+  expresionesYsprites:
+  - expresion: 0
+    sprite: {fileID: 21300000, guid: b9080ece41e174c418904a1f8bb572e1, type: 3}
+  - expresion: 1
+    sprite: {fileID: 21300000, guid: 474e6ded33614734b93bfce466bc0cf1, type: 3}
+  - expresion: 2
+    sprite: {fileID: 21300000, guid: 3b524942ec5ea0d46bd17f3e986b78dd, type: 3}
+  - expresion: 3
+    sprite: {fileID: 21300000, guid: f1ebb3dcb02643f44b77786d0ac9c005, type: 3}
+  - expresion: 4
+    sprite: {fileID: 21300000, guid: 9fa83cddb02d0a24486ce942bb2b8baa, type: 3}
+  - expresion: 5
+    sprite: {fileID: 21300000, guid: 4daeb77ed29e1234da9049a2644586a0, type: 3}
+  - expresion: 6
+    sprite: {fileID: 21300000, guid: d1d9097979712904e9073b9f7f2d8325, type: 3}
+  - expresion: 7
+    sprite: {fileID: 21300000, guid: 2d903ec610f4a6b4c8afce7d4892ebe0, type: 3}
+  - expresion: 8
+    sprite: {fileID: 21300000, guid: fac4416f8d146044892411f28b7c4d8f, type: 3}
+  - expresion: 9
+    sprite: {fileID: 21300000, guid: f85baade427a9a142b5dd8174b9b76e8, type: 3}
+  - expresion: 10
+    sprite: {fileID: 21300000, guid: a6c5f0ee64a4b0f4ab68db77c6e39c88, type: 3}
+  - expresion: 11
+    sprite: {fileID: 21300000, guid: 54b0bbd9711d7354cbfed2460c868cf0, type: 3}
+  - expresion: 12
+    sprite: {fileID: 21300000, guid: a26dc72821908c7459ae351c219809a4, type: 3}
+  - expresion: 13
+    sprite: {fileID: 21300000, guid: d55f0097eeb5bbd4aa02d1473720b938, type: 3}
+  - expresion: 14
+    sprite: {fileID: 21300000, guid: be948301d54d5394f849b20a6e2a4074, type: 3}
+  feedbackCorrectoTrivia:
+  - {fileID: 8300000, guid: 05761f95ebde0fa4f882d0c6b1b246ee, type: 3}
+  - {fileID: 8300000, guid: 3fab4b888d869484e98ad4d9e7ad7617, type: 3}
+  - {fileID: 8300000, guid: 7975ccab1c3f9b549b789f82a8d3480c, type: 3}
+  feedbackIncorrectoTrivia:
+  - {fileID: 8300000, guid: 8df6e05b81c3658449e9c37afdfd7174, type: 3}
+  - {fileID: 8300000, guid: d4e8b9777d7cbaa4285134e9b0dbb6ce, type: 3}
+  - {fileID: 8300000, guid: f17988680300fbd408f3c75e1f07cea3, type: 3}
+--- !u!4 &1456001189
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1456001186}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1523139028
 GameObject:
   m_ObjectHideFlags: 0
@@ -2300,89 +2409,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1969636809
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1969636812}
-  - component: {fileID: 1969636811}
-  - component: {fileID: 1969636810}
-  m_Layer: 0
-  m_Name: "Configuraci\xF3nAsistente"
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1969636810
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1969636809}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 41e9f4a4914139642858049b289acb5f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  audioPantallaInicio: {fileID: 8300000, guid: 43a215ee0210c7d4bb4c64ec39c927b5, type: 3}
-  "audiosIntroducci\xF3nAntesDeRuptura":
-  - {fileID: 8300000, guid: eb4a54bbe6a0108489e9fda59de88536, type: 3}
-  - {fileID: 8300000, guid: 0a736713e8253fb4abe7d1a334675062, type: 3}
-  audiosRuptura:
-  - {fileID: 8300000, guid: f13d7fe590373b24e8b9449fe78d2baa, type: 3}
-  - {fileID: 8300000, guid: 901fca5af0f684e4792c08c9cd9cb9b9, type: 3}
-  - {fileID: 8300000, guid: c3f9df622d12e23459cd8f6fcc0b6eea, type: 3}
-  audioInicioNarrativa: {fileID: 8300000, guid: 3456efc0044edab4a9c911c8000ff2b8, type: 3}
-  audioCierreNarrativa: {fileID: 8300000, guid: a73ff6e60f9485541b9626e933691085, type: 3}
-  audioVisor3DLibre: {fileID: 8300000, guid: ddc06e42f0cf67d46bca53e0f9290e61, type: 3}
---- !u!114 &1969636811
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1969636809}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8c45a41e8c55d86408c8c4cf7aa5e2a9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _duracionFadeImagen: 0.5
-  _esperaDespuesDeAudio: 0.3
-  spritesExpresiones:
-  - expresion: 2
-    sprite: {fileID: 21300000, guid: 69392bad07fca3b4bab8338282ab74fc, type: 3}
-  - expresion: 3
-    sprite: {fileID: 21300000, guid: 5241cdc066aec29449af261fc98842b3, type: 3}
-  feedbackCorrectoTrivia:
-  - {fileID: 8300000, guid: 05761f95ebde0fa4f882d0c6b1b246ee, type: 3}
-  - {fileID: 8300000, guid: 3fab4b888d869484e98ad4d9e7ad7617, type: 3}
-  - {fileID: 8300000, guid: 7975ccab1c3f9b549b789f82a8d3480c, type: 3}
-  feedbackIncorrectoTrivia:
-  - {fileID: 8300000, guid: 8df6e05b81c3658449e9c37afdfd7174, type: 3}
-  - {fileID: 8300000, guid: d4e8b9777d7cbaa4285134e9b0dbb6ce, type: 3}
-  - {fileID: 8300000, guid: f17988680300fbd408f3c75e1f07cea3, type: 3}
---- !u!4 &1969636812
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1969636809}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2046235307
 GameObject:
   m_ObjectHideFlags: 0
@@ -2474,4 +2500,4 @@ SceneRoots:
   - {fileID: 2046235310}
   - {fileID: 1915665287}
   - {fileID: 1870366959}
-  - {fileID: 1969636812}
+  - {fileID: 1456001189}
