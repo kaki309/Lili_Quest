@@ -1,64 +1,46 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Audio;
+using UnityEngine.Networking;
 
 /// <summary>
-/// Sistema de audio completo para la experiencia del museo UAO - Lili.
-/// Maneja tres canales independientes: Música (BGM), Efectos (SFX) y Diálogos.
-/// Usa AudioMixer de Unity para control profesional de volumen por canal.
-/// Patrón Singleton — persiste entre escenas.
+/// Controlador de audio global.
+/// - No tiene referencias a clips internos.
+/// - Puede reproducir el clip ya asignado en cada AudioSource hijo (sin parámetros).
+/// - También acepta AudioClip o path del sistema como parámetro.
+/// - Controla música, SFX y diálogos de forma independiente via AudioMixer.
+/// - Patrón Singleton, persiste entre escenas.
 /// </summary>
-public class AudioController : MonoBehaviour
+public class ControladorAudio : MonoBehaviour
 {
     // ── Singleton ──────────────────────────────────────────────────────────────
-    public static AudioController Instance { get; private set; }
+    public static ControladorAudio Instance { get; private set; }
 
     // ══════════════════════════════════════════════════════════════════════════
     //  INSPECTOR
     // ══════════════════════════════════════════════════════════════════════════
 
-    [Header("Audio Mixer principal")]
-    [Tooltip("Arrastra aquí el AudioMixer creado en el proyecto (Assets > Create > Audio Mixer)")]
+    [Header("Audio Mixer")]
+    [Tooltip("Asignar el AudioMixer desde Interfaz digital -> audios")]
     [SerializeField] private AudioMixer masterMixer;
 
-    // ── Fuentes de audio (una por canal) ──────────────────────────────────────
-    [Header("Fuentes de audio")]
+    [Header("AudioSources (hijos del GameObject)")]
     [SerializeField] private AudioSource musicSource;
     [SerializeField] private AudioSource sfxSource;
     [SerializeField] private AudioSource dialogueSource;
 
-    // ── Clips de música ───────────────────────────────────────────────────────
-    [Header("Clips — Música")]
-    [SerializeField] private AudioClip mainTheme;
-    [SerializeField] private AudioClip successJingle;   // Al completar la pieza
+    [Header("Volúmenes generales (0 a 1) — editables desde el Inspector")]
+    [Range(0f, 1f)] [SerializeField] private float musicVolume    = 0.6f;
+    [Range(0f, 1f)] [SerializeField] private float sfxVolume      = 1.0f;
+    [Range(0f, 1f)] [SerializeField] private float dialogueVolume = 1.0f;
 
-    // ── Clips de SFX ─────────────────────────────────────────────────────────
-    [Header("Clips — Efectos de sonido")]
-    [SerializeField] private AudioClip sfxPickup;
-    [SerializeField] private AudioClip sfxDrop;
-    [SerializeField] private AudioClip sfxCorrect;
-    [SerializeField] private AudioClip sfxError;
-
-    // ── Clips de diálogo ──────────────────────────────────────────────────────
-    [Header("Clips — Diálogos / Narración")]
-    [SerializeField] private AudioClip[] dialogueLines;  // Asigna en el Inspector
-
-    // ── Volúmenes iniciales ───────────────────────────────────────────────────
-    [Header("Volúmenes iniciales (0 a 1)")]
-    [Range(0f, 1f)] [SerializeField] private float initialMusicVolume    = 0.6f;
-    [Range(0f, 1f)] [SerializeField] private float initialSfxVolume      = 1.0f;
-    [Range(0f, 1f)] [SerializeField] private float initialDialogueVolume = 1.0f;
-
-    // ── Parámetros del AudioMixer (deben coincidir con los nombres expuestos) ──
+    // ── Parámetros expuestos en el AudioMixer ──────────────────────────────────
+    private const string MIXER_MASTER   = "MasterVolume";
     private const string MIXER_MUSIC    = "MusicVolume";
     private const string MIXER_SFX      = "SFXVolume";
     private const string MIXER_DIALOGUE = "DialogueVolume";
-    private const string MIXER_MASTER   = "MasterVolume";
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  ESTADO INTERNO
-    // ══════════════════════════════════════════════════════════════════════════
-
+    // ── Estado interno ─────────────────────────────────────────────────────────
     private float _musicVol;
     private float _sfxVol;
     private float _dialogueVol;
@@ -81,15 +63,23 @@ public class AudioController : MonoBehaviour
         InitializeVolumes();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  INICIALIZACIÓN
-    // ══════════════════════════════════════════════════════════════════════════
-
     private void InitializeVolumes()
     {
-        _musicVol    = initialMusicVolume;
-        _sfxVol      = initialSfxVolume;
-        _dialogueVol = initialDialogueVolume;
+        _musicVol    = musicVolume;
+        _sfxVol      = sfxVolume;
+        _dialogueVol = dialogueVolume;
+
+        ApplyMixerVolume(MIXER_MUSIC,    _musicVol);
+        ApplyMixerVolume(MIXER_SFX,      _sfxVol);
+        ApplyMixerVolume(MIXER_DIALOGUE, _dialogueVol);
+    }
+
+    // Se llama automáticamente cada vez que cambias un valor en el Inspector
+    private void OnValidate()
+    {
+        _musicVol    = musicVolume;
+        _sfxVol      = sfxVolume;
+        _dialogueVol = dialogueVolume;
 
         ApplyMixerVolume(MIXER_MUSIC,    _musicVol);
         ApplyMixerVolume(MIXER_SFX,      _sfxVol);
@@ -97,32 +87,164 @@ public class AudioController : MonoBehaviour
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  CANAL: MÚSICA
+    //  API PÚBLICA — REPRODUCCIÓN SIN PARÁMETROS
+    //  Usa el clip que ya está asignado en cada AudioSource hijo
     // ══════════════════════════════════════════════════════════════════════════
 
-    /// <summary>Reproduce un clip de música en loop.</summary>
-    public void PlayMusic(AudioClip clip, bool loop = true)
+    /// <summary>
+    /// Reproduce el clip ya asignado en el AudioSource de música.
+    /// </summary>
+    public void PlayMusic(bool loop = true)
     {
-        if (clip == null || musicSource == null) return;
-        musicSource.clip = clip;
+        if (musicSource == null || musicSource.clip == null) return;
         musicSource.loop = loop;
         musicSource.Play();
     }
 
-    /// <summary>Inicia la música principal del museo.</summary>
-    public void PlayMainTheme() => PlayMusic(mainTheme);
-
-    /// <summary>Reproduce el jingle de éxito al completar la actividad.</summary>
-    public void PlaySuccessJingle() => PlayMusic(successJingle, false);
-
-    public void StopMusic()   => musicSource?.Stop();
-    public void PauseMusic()  => musicSource?.Pause();
-    public void ResumeMusic() => musicSource?.UnPause();
+    /// <summary>
+    /// Reproduce el clip ya asignado en el AudioSource de SFX.
+    /// </summary>
+    public void PlaySFX()
+    {
+        if (sfxSource == null || sfxSource.clip == null || _sfxMuted) return;
+        sfxSource.PlayOneShot(sfxSource.clip, _sfxVol);
+    }
 
     /// <summary>
-    /// Hace un fade suave entre la música actual y un nuevo clip.
-    /// Ideal para transiciones entre zonas del museo.
+    /// Reproduce el clip ya asignado en el AudioSource de diálogos.
     /// </summary>
+    public void PlayDialogue()
+    {
+        if (dialogueSource == null || dialogueSource.clip == null || _dialogueMuted) return;
+        dialogueSource.Stop();
+        dialogueSource.Play();
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    //  API PÚBLICA — REPRODUCCIÓN CON PARÁMETRO (AudioClip o path)
+    // ══════════════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Reproduce música pasando un AudioClip por parámetro.
+    /// </summary>
+    public void PlayMusic(AudioClip clip, bool loop = true)
+    {
+        if (clip == null || musicSource == null) return;
+        musicSource.loop = loop;
+        musicSource.clip = clip;
+        musicSource.Play();
+    }
+
+    /// <summary>
+    /// Reproduce música cargándola desde un path del sistema.
+    /// Ejemplo: PlayMusic(@"C:\experiencia\musica.wav")
+    /// </summary>
+    public void PlayMusic(string path, bool loop = true)
+    {
+        StartCoroutine(LoadAndPlay(path, musicSource, loop));
+    }
+
+    /// <summary>
+    /// Reproduce un SFX pasando un AudioClip por parámetro.
+    /// </summary>
+    public void PlaySFX(AudioClip clip)
+    {
+        if (clip == null || sfxSource == null || _sfxMuted) return;
+        sfxSource.PlayOneShot(clip, _sfxVol);
+    }
+
+    /// <summary>
+    /// Reproduce un SFX cargándolo desde un path del sistema.
+    /// Ejemplo: PlaySFX(@"C:\experiencia\efecto.wav")
+    /// </summary>
+    public void PlaySFX(string path)
+    {
+        StartCoroutine(LoadAndPlayOneShot(path, sfxSource, _sfxVol));
+    }
+
+    /// <summary>
+    /// Reproduce un diálogo pasando un AudioClip por parámetro.
+    /// </summary>
+    public void PlayDialogue(AudioClip clip)
+    {
+        if (clip == null || dialogueSource == null || _dialogueMuted) return;
+        dialogueSource.Stop();
+        dialogueSource.clip = clip;
+        dialogueSource.Play();
+    }
+
+    /// <summary>
+    /// Reproduce un diálogo cargándolo desde un path del sistema.
+    /// Ejemplo: PlayDialogue(@"C:\experiencia\dialogo.wav")
+    /// </summary>
+    public void PlayDialogue(string path)
+    {
+        StartCoroutine(LoadAndPlay(path, dialogueSource, false));
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    //  CARGA DESDE PATH DEL SISTEMA
+    // ══════════════════════════════════════════════════════════════════════════
+
+    private IEnumerator CargarAudioDesdePath(string path, System.Action<AudioClip> onLoaded)
+    {
+        string uri = "file:///" + path.Replace("\\", "/");
+        AudioType audioType = GetAudioType(path);
+
+        using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(uri, audioType))
+        {
+            yield return www.SendWebRequest();
+
+            if (www.result == UnityWebRequest.Result.Success)
+            {
+                AudioClip clip = DownloadHandlerAudioClip.GetContent(www);
+                onLoaded?.Invoke(clip);
+            }
+            else
+            {
+                Debug.LogError($"[ControladorAudio] Error cargando audio desde: {path}\n{www.error}");
+                onLoaded?.Invoke(null);
+            }
+        }
+    }
+
+    private IEnumerator LoadAndPlay(string path, AudioSource source, bool loop)
+    {
+        yield return StartCoroutine(CargarAudioDesdePath(path, (clip) =>
+        {
+            if (clip == null || source == null) return;
+            source.Stop();
+            source.clip = clip;
+            source.loop = loop;
+            source.Play();
+        }));
+    }
+
+    private IEnumerator LoadAndPlayOneShot(string path, AudioSource source, float volume)
+    {
+        yield return StartCoroutine(CargarAudioDesdePath(path, (clip) =>
+        {
+            if (clip == null || source == null) return;
+            source.PlayOneShot(clip, volume);
+        }));
+    }
+
+    private AudioType GetAudioType(string path)
+    {
+        string ext = System.IO.Path.GetExtension(path).ToLower();
+        return ext switch
+        {
+            ".wav"  => AudioType.WAV,
+            ".mp3"  => AudioType.MPEG,
+            ".ogg"  => AudioType.OGGVORBIS,
+            _       => AudioType.UNKNOWN
+        };
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    //  CROSSFADE
+    // ══════════════════════════════════════════════════════════════════════════
+
     public void CrossfadeTo(AudioClip newClip, float duration = 1.5f)
     {
         if (_fadeCoroutine != null) StopCoroutine(_fadeCoroutine);
@@ -133,7 +255,6 @@ public class AudioController : MonoBehaviour
     {
         float half = duration / 2f;
 
-        // Fade out
         for (float t = 0; t < half; t += Time.deltaTime)
         {
             musicSource.volume = Mathf.Lerp(_musicVol, 0f, t / half);
@@ -143,7 +264,6 @@ public class AudioController : MonoBehaviour
         musicSource.clip = newClip;
         musicSource.Play();
 
-        // Fade in
         for (float t = 0; t < half; t += Time.deltaTime)
         {
             musicSource.volume = Mathf.Lerp(0f, _musicMuted ? 0f : _musicVol, t / half);
@@ -154,46 +274,10 @@ public class AudioController : MonoBehaviour
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  CANAL: SFX
-    // ══════════════════════════════════════════════════════════════════════════
-
-    /// <summary>Reproduce cualquier clip de efecto de sonido.</summary>
-    public void PlaySFX(AudioClip clip)
-    {
-        if (clip == null || sfxSource == null || _sfxMuted) return;
-        sfxSource.PlayOneShot(clip, _sfxVol);
-    }
-
-    public void PlayPickup()  => PlaySFX(sfxPickup);
-    public void PlayDrop()    => PlaySFX(sfxDrop);
-    public void PlayCorrect() => PlaySFX(sfxCorrect);
-    public void PlayError()   => PlaySFX(sfxError);
-
-    // ══════════════════════════════════════════════════════════════════════════
-    //  CANAL: DIÁLOGOS
-    // ══════════════════════════════════════════════════════════════════════════
-
-    /// <summary>Reproduce una línea de diálogo/narración. Interrumpe la anterior.</summary>
-    public void PlayDialogue(AudioClip clip)
-    {
-        if (clip == null || dialogueSource == null || _dialogueMuted) return;
-        dialogueSource.Stop();
-        dialogueSource.clip = clip;
-        dialogueSource.Play();
-    }
-
-    /// <summary>Reproduce una línea de diálogo por índice (asignados en el Inspector).</summary>
-    public void PlayDialogueLine(int index)
-    {
-        if (dialogueLines == null || index < 0 || index >= dialogueLines.Length) return;
-        PlayDialogue(dialogueLines[index]);
-    }
-
-    public void StopDialogue() => dialogueSource?.Stop();
-
-    // ══════════════════════════════════════════════════════════════════════════
     //  CONTROL DE VOLUMEN POR CANAL
     // ══════════════════════════════════════════════════════════════════════════
+
+    public void SetMasterVolume(float vol)   => ApplyMixerVolume(MIXER_MASTER, Mathf.Clamp01(vol));
 
     public void SetMusicVolume(float vol)
     {
@@ -213,16 +297,9 @@ public class AudioController : MonoBehaviour
         if (!_dialogueMuted) ApplyMixerVolume(MIXER_DIALOGUE, _dialogueVol);
     }
 
-    public void SetMasterVolume(float vol)
-    {
-        ApplyMixerVolume(MIXER_MASTER, Mathf.Clamp01(vol));
-    }
-
-    // ── Conversión lineal → dB (AudioMixer trabaja en decibeles) ─────────────
     private void ApplyMixerVolume(string parameter, float linearValue)
     {
         if (masterMixer == null) return;
-        // Evita log(0): mínimo -80 dB
         float dB = linearValue > 0.0001f ? Mathf.Log10(linearValue) * 20f : -80f;
         masterMixer.SetFloat(parameter, dB);
     }
@@ -254,14 +331,14 @@ public class AudioController : MonoBehaviour
     public void ToggleMuteDialogue() => SetMuteDialogue(!_dialogueMuted);
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  PAUSA GLOBAL
+    //  PAUSA / STOP
     // ══════════════════════════════════════════════════════════════════════════
 
     public void PauseAll()
     {
         musicSource?.Pause();
         sfxSource?.Pause();
-        dialogueSource?.Stop();
+        dialogueSource?.Pause();
     }
 
     public void ResumeAll()
@@ -277,4 +354,8 @@ public class AudioController : MonoBehaviour
         sfxSource?.Stop();
         dialogueSource?.Stop();
     }
+
+    public void StopMusic()    => musicSource?.Stop();
+    public void StopSFX()      => sfxSource?.Stop();
+    public void StopDialogue() => dialogueSource?.Stop();
 }
