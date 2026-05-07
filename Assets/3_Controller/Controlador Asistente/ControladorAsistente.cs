@@ -66,10 +66,10 @@ public class ControladorAsistente : MonoBehaviour
     /// <summary>
     /// Oculta la expresión del asistente con fade-out de la imagen.
     /// </summary>
-    public void HideExpresion()
+    public IEnumerator HideExpresion()
     {
         estaOculto = true;
-        StartCoroutine(ocultarExpresionProgresivo());
+        yield return ocultarExpresionProgresivo();
     }
 
     /// <summary>
@@ -100,28 +100,22 @@ public class ControladorAsistente : MonoBehaviour
             yield break;
         }
 
-        yield return StartCoroutine(ExecuteSequenceCoroutine(secuencia));
+        yield return ExecuteSequenceCoroutine(secuencia);
     }
 
     /// <summary>
     /// Oculta el asistente y detiene cualquier audio en reproducción.
     /// Limpia la imagen y los subtítulos instantáneamente.
     /// </summary>
-    public void ClearAsistente()
+    public IEnumerator ClearAsistente()
     {
-        if (audioSourceAsistente != null && audioSourceAsistente.isPlaying)
+        if (audioSourceAsistente.isPlaying)
         {
             audioSourceAsistente.Stop();
         }
-        if (canvasGroupImagen != null)
-        {
-            HideExpresion();
-        }
-        if (subtituloText != null)
-        {
-            subtituloText.text = "";
-            subtituloText.gameObject.SetActive(false);
-        }
+        subtituloText.text = "";
+        subtituloText.gameObject.SetActive(false);
+        yield return HideExpresion();
     }
 
     #endregion
@@ -210,11 +204,11 @@ public class ControladorAsistente : MonoBehaviour
         CambiarExpresion(expresion);
 
         // Mostrar imagen con fade-in
-        yield return StartCoroutine(FadeImagenCoroutine(true, ConfiguracionAsistente.Instance.DuracionFadeImagen));
+        yield return FadeImagenCoroutine(true, ConfiguracionAsistente.Instance.DuracionFadeImagen);
     }
     private IEnumerator ocultarExpresionProgresivo()
     {
-        yield return StartCoroutine(FadeImagenCoroutine(false, ConfiguracionAsistente.Instance.DuracionFadeImagen));
+        yield return FadeImagenCoroutine(false, ConfiguracionAsistente.Instance.DuracionFadeImagen);
     }
     private IEnumerator FadeImagenCoroutine(bool mostrar, float duracion)
     {
@@ -285,7 +279,7 @@ public class ControladorAsistente : MonoBehaviour
 
         // Ejecuta la secuencia
         // yield return hace que este código se pause hasta que la secuencia lanzada acabe completamente
-        yield return StartCoroutine(secuencia);
+        yield return secuencia;
 
         // Termina la reproducción y restablece el estado
         estaReproduciendo = false;
