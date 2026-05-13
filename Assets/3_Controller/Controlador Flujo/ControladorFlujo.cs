@@ -306,7 +306,8 @@ public class ControladorFlujo : MonoBehaviour
     IEnumerator ExitInteraccionRuptura()
     {
         Debug.Log("[ControladorFlujo] Saliendo del estado: InteraccionRuptura");
-
+        // Esperamos al efecto de ruptura
+        yield return new WaitForSeconds(3.5f);
         // Pantalla negra
         GestorInterfazPantallasVisor3D.Instance.FondoNegro.SetActive(true);
         // Secuencia de asistente
@@ -395,7 +396,15 @@ public class ControladorFlujo : MonoBehaviour
         Debug.Log("[ControladorFlujo] Saliendo del estado: Visor3D");
     }
     #endregion
-
+    // ============================================================
+    // MÉTODOS PÚBLICOS
+    // ============================================================
+    #region MÉTODOS PÚBLICOS
+    public ParsedExperienceData GetCurrentExperienceData()
+    {
+        return currentExperienceData;
+    }
+    #endregion
     // ============================================================
     // MÉTODOS PRIVADOS
     // ============================================================

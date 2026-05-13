@@ -27,14 +27,14 @@ public class AudioController : MonoBehaviour
     [SerializeField] private AudioSource dialogueSource;
 
     [Header("Volúmenes generales (0 a 1)")]
-    [Range(0f, 1f)] [SerializeField] private float musicVolume    = 0.6f;
-    [Range(0f, 1f)] [SerializeField] private float sfxVolume      = 1.0f;
-    [Range(0f, 1f)] [SerializeField] private float dialogueVolume = 1.0f;
+    [Range(0f, 1f)][SerializeField] private float musicVolume = 0.6f;
+    [Range(0f, 1f)][SerializeField] private float sfxVolume = 1.0f;
+    [Range(0f, 1f)][SerializeField] private float dialogueVolume = 1.0f;
 
     // ── Parámetros del AudioMixer ──────────────────────────────────────────────
-    private const string MIXER_MASTER   = "MasterVolume";
-    private const string MIXER_MUSIC    = "MusicVolume";
-    private const string MIXER_SFX      = "SFXVolume";
+    private const string MIXER_MASTER = "MasterVolume";
+    private const string MIXER_MUSIC = "MusicVolume";
+    private const string MIXER_SFX = "SFXVolume";
     private const string MIXER_DIALOGUE = "DialogueVolume";
 
     // ── Estado interno ─────────────────────────────────────────────────────────
@@ -62,23 +62,23 @@ public class AudioController : MonoBehaviour
 
     private void InitializeVolumes()
     {
-        _musicVol    = musicVolume;
-        _sfxVol      = sfxVolume;
+        _musicVol = musicVolume;
+        _sfxVol = sfxVolume;
         _dialogueVol = dialogueVolume;
 
-        ApplyMixerVolume(MIXER_MUSIC,    _musicVol);
-        ApplyMixerVolume(MIXER_SFX,      _sfxVol);
+        ApplyMixerVolume(MIXER_MUSIC, _musicVol);
+        ApplyMixerVolume(MIXER_SFX, _sfxVol);
         ApplyMixerVolume(MIXER_DIALOGUE, _dialogueVol);
     }
 
     private void OnValidate()
     {
-        _musicVol    = musicVolume;
-        _sfxVol      = sfxVolume;
+        _musicVol = musicVolume;
+        _sfxVol = sfxVolume;
         _dialogueVol = dialogueVolume;
 
-        ApplyMixerVolume(MIXER_MUSIC,    _musicVol);
-        ApplyMixerVolume(MIXER_SFX,      _sfxVol);
+        ApplyMixerVolume(MIXER_MUSIC, _musicVol);
+        ApplyMixerVolume(MIXER_SFX, _sfxVol);
         ApplyMixerVolume(MIXER_DIALOGUE, _dialogueVol);
     }
 
@@ -129,34 +129,54 @@ public class AudioController : MonoBehaviour
     /// Carga y reproduce música desde un path del sistema.
     /// Ejemplo: PlayMusic(@"C:\experiencia\musica.wav")
     /// </summary>
-    public void PlayMusic(string path, bool loop = true)
+    public AudioClip PlayMusic(string path, bool loop = true)
     {
-        StartCoroutine(LoadAndPlay(path, musicSource, loop));
+        AudioClip audio = null;
+        StartCoroutine(CargarAudioDesdePath(path, (clip) =>
+        {
+            if (clip == null) return;
+            audio = clip;
+            LoadAndPlay(audio, musicSource, loop);
+        }));
+        return audio;
     }
 
     /// <summary>
-    /// Carga y reproduce un SFX desde un path del sistema.
+    /// Carga, reproduce y devuelve un SFX desde un path del sistema.
     /// Ejemplo: PlaySFX(@"C:\experiencia\efecto.wav")
     /// </summary>
-    public void PlaySFX(string path)
+    public AudioClip PlaySFX(string path)
     {
-        StartCoroutine(LoadAndPlayOneShot(path, sfxSource, _sfxVol));
+        AudioClip audio = null;
+        StartCoroutine(CargarAudioDesdePath(path, (clip) =>
+        {
+            if (clip == null) return;
+            audio = clip;
+            LoadAndPlayOneShot(audio, sfxSource, _sfxVol);
+        }));
+        return audio;
     }
 
     /// <summary>
-    /// Carga y reproduce un diálogo desde un path del sistema.
+    ///Carga, reproduce y devuelve un diálogo desde un path del sistema.
     /// Ejemplo: PlayDialogue(@"C:\experiencia\dialogo.wav")
     /// </summary>
-    public void PlayDialogue(string path)
+    public AudioClip PlayDialogue(string path)
     {
-        StartCoroutine(LoadAndPlay(path, dialogueSource, false));
+        AudioClip audio = null;
+        StartCoroutine(CargarAudioDesdePath(path, (clip) =>
+        {
+            if (clip == null) return;
+            audio = clip;
+            LoadAndPlay(audio, dialogueSource, false);
+        }));
+        return audio;
     }
 
     // ══════════════════════════════════════════════════════════════════════════
     //  CARGA DESDE PATH DEL SISTEMA
     // ══════════════════════════════════════════════════════════════════════════
-
-    private IEnumerator CargarAudioDesdePath(string path, System.Action<AudioClip> onLoaded)
+    IEnumerator CargarAudioDesdePath(string path, System.Action<AudioClip> onLoaded)
     {
         string uri = "file:///" + path.Replace("\\", "/");
         AudioType audioType = GetAudioType(path);
@@ -177,36 +197,30 @@ public class AudioController : MonoBehaviour
         }
     }
 
-    private IEnumerator LoadAndPlay(string path, AudioSource source, bool loop)
+    void LoadAndPlay(AudioClip clip, AudioSource source, bool loop)
     {
-        yield return StartCoroutine(CargarAudioDesdePath(path, (clip) =>
-        {
-            if (clip == null || source == null) return;
-            source.Stop();
-            source.clip = clip;
-            source.loop = loop;
-            source.Play();
-        }));
+        if (source == null) return;
+        source.Stop();
+        source.clip = clip;
+        source.loop = loop;
+        source.Play();
     }
 
-    private IEnumerator LoadAndPlayOneShot(string path, AudioSource source, float volume)
+    void LoadAndPlayOneShot(AudioClip clip, AudioSource source, float volume)
     {
-        yield return StartCoroutine(CargarAudioDesdePath(path, (clip) =>
-        {
-            if (clip == null || source == null) return;
-            source.PlayOneShot(clip, volume);
-        }));
+        if (source == null) return;
+        source.PlayOneShot(clip, volume);
     }
 
-    private AudioType GetAudioType(string path)
+    AudioType GetAudioType(string path)
     {
         string ext = System.IO.Path.GetExtension(path).ToLower();
         return ext switch
         {
-            ".wav"  => AudioType.WAV,
-            ".mp3"  => AudioType.MPEG,
-            ".ogg"  => AudioType.OGGVORBIS,
-            _       => AudioType.UNKNOWN
+            ".wav" => AudioType.WAV,
+            ".mp3" => AudioType.MPEG,
+            ".ogg" => AudioType.OGGVORBIS,
+            _ => AudioType.UNKNOWN
         };
     }
 
@@ -220,7 +234,7 @@ public class AudioController : MonoBehaviour
         _fadeCoroutine = StartCoroutine(CrossfadeRoutine(newClip, duration));
     }
 
-    private IEnumerator CrossfadeRoutine(AudioClip newClip, float duration)
+    IEnumerator CrossfadeRoutine(AudioClip newClip, float duration)
     {
         float half = duration / 2f;
 
@@ -246,7 +260,7 @@ public class AudioController : MonoBehaviour
     //  CONTROL DE VOLUMEN
     // ══════════════════════════════════════════════════════════════════════════
 
-    public void SetMasterVolume(float vol)   => ApplyMixerVolume(MIXER_MASTER, Mathf.Clamp01(vol));
+    public void SetMasterVolume(float vol) => ApplyMixerVolume(MIXER_MASTER, Mathf.Clamp01(vol));
 
     public void SetMusicVolume(float vol)
     {
@@ -266,7 +280,7 @@ public class AudioController : MonoBehaviour
         if (!_dialogueMuted) ApplyMixerVolume(MIXER_DIALOGUE, _dialogueVol);
     }
 
-    private void ApplyMixerVolume(string parameter, float linearValue)
+    void ApplyMixerVolume(string parameter, float linearValue)
     {
         if (masterMixer == null) return;
         float dB = linearValue > 0.0001f ? Mathf.Log10(linearValue) * 20f : -80f;
@@ -295,8 +309,8 @@ public class AudioController : MonoBehaviour
         ApplyMixerVolume(MIXER_DIALOGUE, mute ? 0f : _dialogueVol);
     }
 
-    public void ToggleMuteMusic()    => SetMuteMusic(!_musicMuted);
-    public void ToggleMuteSFX()      => SetMuteSFX(!_sfxMuted);
+    public void ToggleMuteMusic() => SetMuteMusic(!_musicMuted);
+    public void ToggleMuteSFX() => SetMuteSFX(!_sfxMuted);
     public void ToggleMuteDialogue() => SetMuteDialogue(!_dialogueMuted);
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -324,7 +338,7 @@ public class AudioController : MonoBehaviour
         dialogueSource?.Stop();
     }
 
-    public void StopMusic()    => musicSource?.Stop();
-    public void StopSFX()      => sfxSource?.Stop();
+    public void StopMusic() => musicSource?.Stop();
+    public void StopSFX() => sfxSource?.Stop();
     public void StopDialogue() => dialogueSource?.Stop();
 }

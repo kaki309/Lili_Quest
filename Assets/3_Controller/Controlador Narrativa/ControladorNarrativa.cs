@@ -1,6 +1,6 @@
 using System.Collections;
-using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ControladorNarrativa : MonoBehaviour
 {
@@ -12,32 +12,38 @@ public class ControladorNarrativa : MonoBehaviour
     EntradaAudioClipSprite[] laiaIntentaNuevamente;
     GestorInterfazPantallaNarrativa UI;
     bool isAnsweringTrivia = false;
+    AudioClip currentAudio;
+    ControladorAsistente asistente;
+    AudioController controladorAudio;
+    ParsedExperienceData currentExperienceData;
 
     void Start()
     {
+        asistente = ControladorAsistente.Instance;
+        controladorAudio = AudioController.Instance;
         laiaFelicitaciones = ConfiguracionAsistente.Instance.feedbackCorrectoTrivia;
         laiaIntentaNuevamente = ConfiguracionAsistente.Instance.feedbackIncorrectoTrivia;
         UI = GestorInterfazPantallaNarrativa.Instance;
+        currentExperienceData = ControladorFlujo.Instance.GetCurrentExperienceData();
 
-        TurnOffEveryUIElement();
-        StartCoroutine(SimularSecuencia());
+        HideUIElements();
+        StartCoroutine(NarrativaPerrito());
     }
-    void TurnOffEveryUIElement()
+    void HideUIElements()
     {
-        UI.Foto.SetActive(false);
         UI.CanvasTrivia.SetActive(false);
+        UI.EncuadreFoto.SetActive(false);
+        UI.ReferenciaInfo.text = "";
     }
     IEnumerator SimularSecuencia()
     {
-        ControladorAsistente asistente = ControladorAsistente.Instance;
-
         yield return new WaitForSeconds(3);
 
-        UI.Foto.SetActive(true);
+        UI.EncuadreFoto.SetActive(true);
 
         yield return new WaitForSeconds(2);
 
-        UI.Foto.SetActive(false);
+        UI.EncuadreFoto.SetActive(false);
 
         asistente.SetExpresion(ExpresionesAsistente.idle1);
         asistente.PlayDialog(laiaFelicitaciones[0].audioClip, "Primer texto de la narrativa");
@@ -55,6 +61,22 @@ public class ControladorNarrativa : MonoBehaviour
         UI.CanvasTrivia.SetActive(false);
 
         finishSecuence();
+    }
+    IEnumerator NarrativaPerrito()
+    {
+        asistente.SetExpresion(ExpresionesAsistente.idle1);
+        currentAudio = controladorAudio.PlaySFX(currentExperienceData.audios["intro_silbato"]);
+        UI.Subtitulo.text = "reproduciendo intro_silbato";
+
+        yield return new WaitForSeconds(currentAudio.length + 2f);
+
+        asistente.SetExpresion(ExpresionesAsistente.deHecho1);
+        currentAudio = controladorAudio.PlaySFX(currentExperienceData.audios["contexto_quimbaya"]);
+        UI.Subtitulo.text = "reproduciendo contexto_quimbaya";
+        UI.EncuadreFoto.SetActive(true);
+        UI.Foto.sprite = LoadSpriteFromPath(currentExperienceData.imagenes["ceramica"]);
+
+        yield return new WaitForSeconds(currentAudio.length + 2f);
     }
     public void answerTriviaCorrectly() => StartCoroutine(answerCorrect());
     public void answerTriviaIncorrectly() => StartCoroutine(answerIncorrect());
@@ -101,6 +123,19 @@ public class ControladorNarrativa : MonoBehaviour
     {
         ControladorFlujo.Instance.FinishNarrativaState();
     }
+
+    /// <summary>
+    /// Devuelve un Sprite cargado desde una ruta completa del sistema
+    /// </summary>
+    private Sprite LoadSpriteFromPath(string imagePath)
+    {
+        byte[] imageData = System.IO.File.ReadAllBytes(imagePath);
+        Texture2D texture = new Texture2D(1, 1);
+        texture.LoadImage(imageData);
+
+        return Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.one * 0.5f);
+    }
+
     EntradaAudioClipSprite getRandomLaiaFeedback(EntradaAudioClipSprite[] entrada)
     {
         int index = Random.Range(0, entrada.Length);
