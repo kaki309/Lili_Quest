@@ -19,6 +19,23 @@ public class LoadingSceneController : MonoBehaviour
 
     IEnumerator LoadSceneAsync()
     {
+        // Descargar todas las escenas activas excepto la de carga
+        // Esto previene acumulación de escenas
+        for (int i = 0; i < SceneManager.sceneCount; i++)
+        {
+            Scene scene = SceneManager.GetSceneAt(i);
+            // No descargar la escena de carga (esta es la pantalla de carga actual)
+            if (scene.buildIndex != (int)EscenasSistema.PantallaCarga && scene.isLoaded)
+            {
+                Debug.Log($"[LoadingSceneController] Descargando escena: {scene.name}");
+                SceneManager.UnloadSceneAsync(scene);
+            }
+        }
+
+        // Pequeña espera para que las escenas se descarguen
+        yield return null;
+
+        // Cargar la nueva escena en modo Additive
         AsyncOperation asyncLoad = null;
         asyncLoad = SceneManager.LoadSceneAsync(sceneToLoad, LoadSceneMode.Additive);
 

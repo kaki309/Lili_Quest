@@ -108,7 +108,7 @@ public class ConectorArduino : MonoBehaviour
     // ---- MENSAJES DE PROTOCOLO (Arduino esperando estos literales) ----
     private const string IDENTIFICATION_MSG = "soy controles lili quest";      // Arduino envía al inicializar
     private const string RESPONSE_MSG = "te encontre";             // Respuesta que se envía al arduino
-    private const string RESET_CONNECTION_MSG = "enviar rfid"; // Comando para volver a esperanza RFID
+    private const string RESET_CONNECTION_MSG = "reset"; // Comando para reiniciar conexión completa
     private const string START_SENDING_DATA_MSG = "enviar datos de control"; // Comando para solicitar envío de datos de interacción
 
     private void Awake()

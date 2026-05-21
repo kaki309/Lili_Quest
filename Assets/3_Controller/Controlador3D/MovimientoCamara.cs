@@ -50,9 +50,6 @@ public class MovimientoCamara : MonoBehaviour
         transform.RotateAround(puntoFijo, Vector3.up, rotY);
         transform.RotateAround(puntoFijo, transform.right, rotX);
 
-        acumulado += (Mathf.Abs(rotY) + Mathf.Abs(rotX)) / 2;
-        Debug.Log("Acumulado: " + acumulado);
-
         // =========================
         // ZOOM (Potenciómetro: 0-1023 -> -1 a 1)
         // =========================
@@ -80,6 +77,9 @@ public class MovimientoCamara : MonoBehaviour
         // FRACTURA
         // =========================
         if (!activateFracture) return;
+
+        acumulado += (Mathf.Abs(rotY) + Mathf.Abs(rotX)) / 1.5f;
+        Debug.Log("Acumulado: " + acumulado);
 
         if (!yaFracturo && Mathf.Abs(acumulado) >= limiteRotacion)
         {
