@@ -108,10 +108,6 @@ public class ControladorFlujo : MonoBehaviour
             case ControllerState.EsperandoInicioExperiencia:
                 UpdateEsperandoInicioExperiencia();
                 break;
-
-            default:
-                Debug.LogWarning("[ControladorFlujo] Estado no reconocido: " + currentState);
-                break;
         }
     }
 
