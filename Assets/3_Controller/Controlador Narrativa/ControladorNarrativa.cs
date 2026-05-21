@@ -104,7 +104,7 @@ public class ControladorNarrativa : MonoBehaviour
 
         // ######### Bloque 3: El Uso Ritual
 
-        asistente.SetExpresion(ExpresionesAsistente.idle1);
+        asistente.SetExpresion(ExpresionesAsistente.explicando1);
 
         // Esperar a que el audio se cargue de forma asincrónica
         yield return controladorAudio.PlayDialogueAsync(currentExperienceData.audios["secuencia_2"], (clip) =>
@@ -130,7 +130,7 @@ public class ControladorNarrativa : MonoBehaviour
 
         // ######### Bloque 5: El Hallazgo y el 'Ombligo'
 
-        asistente.SetExpresion(ExpresionesAsistente.idle1);
+        asistente.SetExpresion(ExpresionesAsistente.amable1);
 
         // Esperar a que el audio se cargue de forma asincrónica
         yield return controladorAudio.PlayDialogueAsync(currentExperienceData.audios["secuencia_3"], (clip) =>

@@ -194,17 +194,15 @@ public class ControladorFlujo : MonoBehaviour
 
         if (!DoesCurrentExperienceModelExists()) return;
 
-        // Cargar el modelo 3D desde la ruta externa de forma asincrónica
-        GameObject container = GestorInterfazPantallaInicio.Instance.ContenedorModelo3D;
-        LoadModelAsync(container, currentExperienceData.modeloPath);
-
+        GestorInterfazPantallaInicio.Instance.RuedaDecorativa.GetComponent<Animator>().SetTrigger("girar");
+        AudioController.Instance.PlaySFX(GestorInterfazPantallaInicio.Instance.SfxRueda);
         // Desactivar texto de espera de lectura
         GestorInterfazPantallaInicio.Instance.textoEsperandoLectura.SetActive(false);
-
         // Activar botón para iniciar la experiencia
         Button startButton = GestorInterfazPantallaInicio.Instance.BotonInicioExperiencia;
         startButton.gameObject.SetActive(true);
         startButton.onClick.AddListener(TransitionToInteraccionRuptura);
+
         isInitializingState = false;
     }
     void UpdateEsperandoInicioExperiencia()
