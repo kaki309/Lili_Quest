@@ -31,13 +31,6 @@ public class ControladorAsistente : MonoBehaviour
         ValidarReferencias();
         InicializarElementos();
     }
-    private void OnDestroy()
-    {
-        if (Instance == this)
-        {
-            Instance = null;
-        }
-    }
 
     #endregion
 
@@ -152,7 +145,7 @@ public class ControladorAsistente : MonoBehaviour
 
         if (subtituloText != null)
         {
-            subtituloText.gameObject.SetActive(false);
+            subtituloText.text="";
         }
     }
 

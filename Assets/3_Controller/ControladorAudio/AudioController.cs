@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Audio;
@@ -158,25 +159,38 @@ public class AudioController : MonoBehaviour
     }
 
     /// <summary>
-    ///Carga, reproduce y devuelve un diálogo desde un path del sistema.
+    ///Carga y reproduce un diálogo desde un path del sistema.
     /// Ejemplo: PlayDialogue(@"C:\experiencia\dialogo.wav")
     /// </summary>
-    public AudioClip PlayDialogue(string path)
+    public void PlayDialogue(string path)
+    {
+        StartCoroutine(CargarAudioDesdePath(path, (clip) =>
+        {
+            if (clip == null) return;
+            LoadAndPlay(clip, dialogueSource, false);
+        }));
+    }
+
+    /// <summary>
+    /// Carga, reproduce y espera a que se devuelva el diálogo desde un path del sistema.
+    /// Usar con yield return en una corrutina.
+    /// </summary>
+    public IEnumerator PlayDialogueAsync(string path, System.Action<AudioClip> onAudioLoaded)
     {
         AudioClip audio = null;
-        StartCoroutine(CargarAudioDesdePath(path, (clip) =>
+        yield return CargarAudioDesdePath(path, (clip) =>
         {
             if (clip == null) return;
             audio = clip;
             LoadAndPlay(audio, dialogueSource, false);
-        }));
-        return audio;
+        });
+        onAudioLoaded?.Invoke(audio);
     }
 
     // ══════════════════════════════════════════════════════════════════════════
     //  CARGA DESDE PATH DEL SISTEMA
     // ══════════════════════════════════════════════════════════════════════════
-    IEnumerator CargarAudioDesdePath(string path, System.Action<AudioClip> onLoaded)
+    IEnumerator CargarAudioDesdePath(string path, Action<AudioClip> onLoaded)
     {
         string uri = "file:///" + path.Replace("\\", "/");
         AudioType audioType = GetAudioType(path);
