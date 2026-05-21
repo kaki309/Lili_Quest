@@ -3,18 +3,14 @@
     "modelo": "SilbatoPerroQuimbayaModelo.glb",
     "secuencia": "archivoSecuencia.txt",
     "imagenes": [
-      {"key": "ceramica", "value": "imagenes/ceramica.jpg"},
-      {"key": "contexto_quimbaya", "value": "imagenes/contexto_quimbaya.jpg"},
-      {"key": "orfebreria", "value": "imagenes/orfebreria.jpg"},
-      {"key": "silbato_perro_quimbaya", "value": "imagenes/silbato_perro_quimbaya.png"}
+      {"key": "audiovisual_1", "value": "imagenes/audiovisual_1.png"},
+      {"key": "audiovisual_2", "value": "imagenes/audiovisual_2.png"},
+      {"key": "audiovisual_3", "value": "imagenes/audiovisual_3.png"}
     ],
     "audios": [
-      {"key": "Bienvenida", "value": "audios/Bienvenida.wav"},
-      {"key": "conclusion_reflexiva", "value": "audios/conclusion_reflexiva.wav"},
-      {"key": "contexto_quimbaya", "value": "audios/contexto_quimbaya.wav"},
-      {"key": "descripcion_pieza", "value": "audios/descripcion_pieza.wav"},
-      {"key": "intro_silbato", "value": "audios/intro_silbato.wav"},
-      {"key": "uso_silbato", "value": "audios/uso_silbato.wav"}
+      {"key": "secuencia_1", "value": "audios/secuencia_1.wav"},
+      {"key": "secuencia_2", "value": "audios/secuencia_2.wav"},
+      {"key": "secuencia_3", "value": "audios/secuencia_3.wav"}
     ]
   }
 }
