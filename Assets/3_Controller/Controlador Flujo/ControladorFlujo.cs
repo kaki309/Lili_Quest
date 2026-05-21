@@ -199,9 +199,7 @@ public class ControladorFlujo : MonoBehaviour
         // Desactivar texto de espera de lectura
         GestorInterfazPantallaInicio.Instance.textoEsperandoLectura.SetActive(false);
         // Activar botón para iniciar la experiencia
-        Button startButton = GestorInterfazPantallaInicio.Instance.BotonInicioExperiencia;
-        startButton.gameObject.SetActive(true);
-        startButton.onClick.AddListener(TransitionToInteraccionRuptura);
+        GestorInterfazPantallaInicio.Instance.BotonInicioExperiencia.gameObject.SetActive(true);
 
         isInitializingState = false;
     }
@@ -209,16 +207,24 @@ public class ControladorFlujo : MonoBehaviour
     {
         if (interactionData.ButtonPressed)
         {
-            GestorInterfazPantallaInicio.Instance.BotonInicioExperiencia.onClick.Invoke();
+            Debug.Log("[ControladorFlujo] Botón presionado detectado (transición). Iniciando experiencia...");
             TransitionToInteraccionRuptura();
+        }
+        else
+        {
+            Debug.Log("[ControladorFlujo] Transición en proceso, ignorando botón");
         }
     }
     void TransitionToInteraccionRuptura()
     {
+        isSwitchingState = true;
         ExitEsperandoInicioExperiencia();
         currentState = ControllerState.InteraccionRuptura;
         Debug.Log("[ControladorFlujo] Transición a: InteraccionRuptura");
-        LanzadorEscenas.Instance.cargarEscenaYEjecutar(EscenasSistema.Visor3D, (onDone) => StartCoroutine(InitializeInteraccionRuptura(onDone)));
+        LanzadorEscenas.Instance.cargarEscenaYEjecutar(EscenasSistema.Visor3D, (onDone) =>
+        {
+            StartCoroutine(InitializeInteraccionRuptura(onDone));
+        });
     }
     void ExitEsperandoInicioExperiencia()
     {
@@ -232,6 +238,7 @@ public class ControladorFlujo : MonoBehaviour
     #region ESTADO: INTERACCIÓN Y RUPTURA
     IEnumerator InitializeInteraccionRuptura(Action onDone)
     {
+        isSwitchingState = false;
         isInitializingState = true;
         Debug.Log("[ControladorFlujo] Inicializando estado: InteraccionRuptura");
 
@@ -260,12 +267,13 @@ public class ControladorFlujo : MonoBehaviour
         // Actualizamos las referencias en la cámara
         movimientoCamara.SetObjetivo(model);
 
-        // Avisamos a la pantalla de carga que ya terminó el proceso
-        onDone?.Invoke();
-        yield return null;
-
         // Activamos pantalla negra detrás del asistente
         GestorInterfazPantallasVisor3D.Instance.FondoNegro.SetActive(true);
+        
+        // Avisamos a la pantalla de carga que ya terminó el proceso
+        onDone?.Invoke();
+        yield return new WaitForSeconds(2f);
+
         // Ejecutamos secuencia de introducción del asistente
         yield return ControladorAsistente.Instance.PlaySequence(ConfiguracionAsistente.Instance.Secuencias.IntroducciónAntesDeRuptura());
         yield return new WaitForSeconds(0.6f);

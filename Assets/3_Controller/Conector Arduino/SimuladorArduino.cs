@@ -52,6 +52,10 @@ public class SimuladorArduino : MonoBehaviour
     private Vector2 historyScrollPosition = Vector2.zero;
     private string statusMessage = "Iniciando...";
     private string rfidInputField = "77579063";
+    private string joystickXInput = "512";
+    private string joystickYInput = "512";
+    private string potentiometerInput = "512";
+    private string buttonInput = "S";
     private System.Collections.Generic.List<string> messageHistory = new System.Collections.Generic.List<string>();
 
     void Awake()
@@ -245,6 +249,29 @@ public class SimuladorArduino : MonoBehaviour
             {
                 SendRFIDData(rfidInputField);
             }
+
+            GUILayout.Space(10);
+            GUILayout.Label("─── SENSORES CONTROLADOS ───", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
+
+            GUILayout.Label("Joystick X (0-1023):", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
+            joystickXInput = GUILayout.TextField(joystickXInput, GUILayout.Height(25));
+
+            GUILayout.Label("Joystick Y (0-1023):", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
+            joystickYInput = GUILayout.TextField(joystickYInput, GUILayout.Height(25));
+
+            GUILayout.Label("Potenciómetro (0-1023):", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
+            potentiometerInput = GUILayout.TextField(potentiometerInput, GUILayout.Height(25));
+
+            GUILayout.Label("Botón (S=Sin presión, P=Pulsado):", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
+            buttonInput = GUILayout.TextField(buttonInput, 1, GUILayout.Height(25));
+
+            if (GUILayout.Button("📤 Enviar Sensores Controlados", GUILayout.Height(30)))
+            {
+                SendControlledSensorData(rfidInputField, joystickXInput, joystickYInput, potentiometerInput, buttonInput);
+            }
+
+            GUILayout.Space(10);
+            GUILayout.Label("─── SENSORES ALEATORIOS ───", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
 
             if (GUILayout.Button("🎲 Enviar Sensores Aleatorios", GUILayout.Height(30)))
             {
@@ -488,6 +515,65 @@ public class SimuladorArduino : MonoBehaviour
         catch (Exception ex)
         {
             Debug.LogError($"[SimuladorArduino] ❌ Error al enviar datos: {ex.Message}");
+            statusMessage = $"Error: {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// Envía datos de sensores con valores controlados por el usuario
+    /// Permite pruebas precisas de rangos específicos de sensores
+    /// </summary>
+    public void SendControlledSensorData(string rfidTag, string joyXStr, string joyYStr, string potStr, string buttonStr)
+    {
+        if (!isConnected || !handshakeDone)
+        {
+            Debug.LogWarning("[SimuladorArduino] ⚠️ No está conectado o handshake no completado");
+            statusMessage = "Error: No conectado";
+            return;
+        }
+
+        try
+        {
+            // Convertir y validar valores
+            if (!int.TryParse(joyXStr, out int joyX) || joyX < 0 || joyX > 1023)
+            {
+                statusMessage = "Error: Joystick X debe estar entre 0-1023";
+                Debug.LogWarning($"[SimuladorArduino] ⚠️ {statusMessage}");
+                return;
+            }
+
+            if (!int.TryParse(joyYStr, out int joyY) || joyY < 0 || joyY > 1023)
+            {
+                statusMessage = "Error: Joystick Y debe estar entre 0-1023";
+                Debug.LogWarning($"[SimuladorArduino] ⚠️ {statusMessage}");
+                return;
+            }
+
+            if (!int.TryParse(potStr, out int pot) || pot < 0 || pot > 1023)
+            {
+                statusMessage = "Error: Potenciómetro debe estar entre 0-1023";
+                Debug.LogWarning($"[SimuladorArduino] ⚠️ {statusMessage}");
+                return;
+            }
+
+            // Validar botón (solo S o P permitidos)
+            buttonStr = buttonStr.ToUpper();
+            if (buttonStr != "S" && buttonStr != "P")
+            {
+                buttonStr = "S"; // Valor por defecto si es inválido
+                Debug.LogWarning("[SimuladorArduino] ⚠️ Botón inválido, usando 'S' por defecto");
+            }
+
+            // Enviar datos
+            string json = $"{{\"RFID\":\"{rfidTag}\",\"JOYSTICK\":\"{joyX}-{joyY}\",\"POT\":\"{pot}\",\"BUTTON\":\"{buttonStr}\"}}";
+            serialPort.WriteLine(json);
+            serialPort.BaseStream.Flush();
+            Debug.Log($"[SimuladorArduino] 📤 Sensores controlados enviados: {json}");
+            statusMessage = $"Sensores controlados: JX={joyX}, JY={joyY}, POT={pot}, BTN={buttonStr}";
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"[SimuladorArduino] ❌ Error al enviar sensores controlados: {ex.Message}");
             statusMessage = $"Error: {ex.Message}";
         }
     }

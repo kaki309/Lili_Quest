@@ -563,8 +563,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 909135a9b127de94592314f404180acb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  velRotacion: 1
-  velZoom: 5
+  velRotacion: 50
+  velZoom: 8
   distanciaMin: 5
   distanciaMax: 20
   activateFracture: 1

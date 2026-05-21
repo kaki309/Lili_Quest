@@ -2,8 +2,10 @@ using UnityEngine;
 
 public class MovimientoCamara : MonoBehaviour
 {
+    private const float JOYSTICK_DEADZONE = 0.05f; // 5% de dead zone para evitar micromovimientos
+
     [Header("Movimiento de cámara")]
-    [SerializeField] float velRotacion = 1;
+    [SerializeField] float velRotacion = 50f; // Aumentado para mejor respuesta
     [SerializeField] float velZoom = 5f;
     [SerializeField] float distanciaMin = 5;
     [SerializeField] float distanciaMax = 15f;
@@ -15,7 +17,7 @@ public class MovimientoCamara : MonoBehaviour
     Transform objetivo;
     Vector3 puntoFijo;
     Fractura fractureScript;
-    public float acumuladoY = 0f;
+    float acumulado = 0f;
     bool yaFracturo = false;
 
     void Start()
@@ -30,32 +32,36 @@ public class MovimientoCamara : MonoBehaviour
     {
         if (ConectorArduino.Instance == null || !ConectorArduino.Instance.IsConnected) return;
 
-        var data = ConectorArduino.Instance.GetSensorData();
+        SensorData data = ConectorArduino.Instance.GetSensorData();
 
-        float joyX = data.JOYSTICK.X / 2;
-        float joyY = data.JOYSTICK.Y / 2;
+        // Mapeo de joystick: 0-1023 -> -1 a 1 (512 es neutral)
+        float joyX = (data.JOYSTICK.X - 512f) / 512f;
+        float joyY = (data.JOYSTICK.Y - 512f) / 512f;
 
-        // Mapeo de DATOS según envío real de Arduino (0:1024 -> 0:1)
-        //float joyX = (data.JOYSTICK.X - 512f) / 512f;
-        //float joyY = (data.JOYSTICK.Y - 512f) / 512f;
+        // Dead zone: ignorar valores muy pequeños para evitar micromovimientos
+        if (Mathf.Abs(joyX) < JOYSTICK_DEADZONE) joyX = 0f;
+        if (Mathf.Abs(joyY) < JOYSTICK_DEADZONE) joyY = 0f;
 
-
-        ///DATOS PARA EL SIMULADOR
+        // Calcular rotaciones (se invierte X para que sea intuitivo: joystick derecha = cámara gira izquierda)
         float rotY = -joyX * velRotacion * Time.deltaTime;
         float rotX = joyY * velRotacion * Time.deltaTime;
 
-        //  LA CÁMARA SE MUEVE 
+        // Aplicar rotaciones alrededor del punto objetivo
         transform.RotateAround(puntoFijo, Vector3.up, rotY);
         transform.RotateAround(puntoFijo, transform.right, rotX);
 
-        acumuladoY += rotY;
+        acumulado += (Mathf.Abs(rotY) + Mathf.Abs(rotX)) / 2;
+        Debug.Log("Acumulado: " + acumulado);
 
         // =========================
-        // ZOOM
+        // ZOOM (Potenciómetro: 0-1023 -> -1 a 1)
         // =========================
         if (float.TryParse(data.POT, out float pot))
         {
             float zoom = (pot - 512f) / 512f;
+
+            // Dead zone para zoom también
+            if (Mathf.Abs(zoom) < JOYSTICK_DEADZONE) zoom = 0f;
 
             // Dirección hacia el objetivo
             Vector3 direccion = (puntoFijo - transform.position).normalized;
@@ -75,7 +81,7 @@ public class MovimientoCamara : MonoBehaviour
         // =========================
         if (!activateFracture) return;
 
-        if (!yaFracturo && Mathf.Abs(acumuladoY) >= limiteRotacion)
+        if (!yaFracturo && Mathf.Abs(acumulado) >= limiteRotacion)
         {
             if (fractureScript != null)
             {
