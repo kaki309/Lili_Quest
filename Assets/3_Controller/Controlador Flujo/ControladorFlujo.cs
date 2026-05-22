@@ -3,6 +3,7 @@ using UnityEngine;
 using GLTFast;
 using UnityEngine.UI;
 using System.Collections;
+using UnityEngine.EventSystems;
 
 // ============================================================
 // ENUM Y TIPOS DE DATOS
@@ -203,13 +204,17 @@ public class ControladorFlujo : MonoBehaviour
         // Activar botón para iniciar la experiencia
         GestorInterfazPantallaInicio.Instance.BotonInicioExperiencia.gameObject.SetActive(true);
 
+        EventSystem.current.SetSelectedGameObject(GestorInterfazPantallaInicio.Instance.BotonInicioExperiencia.gameObject);
+
         isInitializingState = false;
     }
     void UpdateEsperandoInicioExperiencia()
     {
-        if (interactionData.ButtonPressed)
+        if (interactionData.ButtonPressed || Input.GetKey(KeyCode.Return))
         {
             Debug.Log("[ControladorFlujo] Botón presionado detectado (transición). Iniciando experiencia...");
+            GestorInterfazPantallaInicio.Instance.BotonInicioExperiencia.onClick.RemoveAllListeners();
+            GestorInterfazPantallaInicio.Instance.BotonInicioExperiencia.onClick.Invoke();
             TransitionToInteraccionRuptura();
         }
     }
