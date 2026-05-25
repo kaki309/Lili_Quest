@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🐾 LiliQuest
+# 🔍 LiliQuest
 
 ### Sistema Multimedia Interactivo para la Difusión Digital del Silbato en Forma de Perro de la Cultura Quimbaya
 
@@ -52,7 +52,6 @@ Visor 3D libre — Pieza reconstruida
 | María Paula Becerra Henao | 2226053 |
 | David Santiago Roa | 2215926 |
 | Boris Alejandro Garces Hoyos | 2225026 |
-| Nicolás Llanos Neuta | — |
 
 **Asignatura:** Diseño Multimedia 2 — Ingeniería Multimedia  
 **Facultad:** Ingeniería y Ciencias Básicas — Universidad Autónoma de Occidente
@@ -170,52 +169,6 @@ LiliQuest/
 
 ---
 
-## ⚠️ Deuda Técnica
-
-A continuación se identifican los elementos de deuda técnica presentes en el sistema actual, su impacto y las decisiones tomadas al respecto.
-
----
-
-### DT-01 — Comunicación serial sin reconexión automática (Arduino ↔ Unity)
-
-| Campo | Detalle |
-|---|---|
-| **Descripción** | La comunicación entre Arduino y Unity se establece al inicio de la aplicación mediante el puerto serial. Si la conexión se interrumpe durante una sesión (desconexión accidental del cable USB), el sistema no intenta reconectarse automáticamente. |
-| **Impacto** | Alto. En uso público dentro del museo, una desconexión deja el sistema inutilizable hasta ser reiniciado manualmente por un operador. |
-| **Decisión tomada** | Se priorizó la estabilidad del prototipo funcional para la entrega actual. La reconexión automática requiere manejo de hilos secundarios (*threading*) y lógica de reintento, lo cual se planea abordar en iteraciones posteriores. Como mitigación inmediata, se verifica la conexión al inicio de cada sesión antes de permitir el avance del usuario. |
-
----
-
-### DT-02 — Gestión de contenido sin base de datos formal
-
-| Campo | Detalle |
-|---|---|
-| **Descripción** | El sistema utiliza archivos JSON y una estructura de carpetas como mecanismo de almacenamiento. No existe un gestor de base de datos ni validación automática de integridad de los archivos de contenido. |
-| **Impacto** | Medio. La adición de nuevas piezas o temáticas requiere edición manual de archivos JSON. Un error en la estructura o en la ruta de un asset puede causar fallos silenciosos en tiempo de ejecución. El sistema no escala bien si se amplía el catálogo del museo. |
-| **Decisión tomada** | Para el alcance actual (una sola pieza arqueológica), la solución local elimina dependencias externas y es suficiente. Se documenta como deuda técnica para cuando el sistema se extienda a otras piezas, momento en el que se evaluará migrar a SQLite o un sistema de configuración más robusto. |
-
----
-
-### DT-03 — Ausencia de opciones de accesibilidad configurables por el usuario
-
-| Campo | Detalle |
-|---|---|
-| **Descripción** | La interfaz gráfica no ofrece configuraciones de accesibilidad ajustables (tamaño de texto, contraste alto, velocidad de los diálogos de Laia). |
-| **Impacto** | Medio-Alto (ético). Visitantes con dificultades visuales o de procesamiento auditivo podrían tener una experiencia degradada, limitando el alcance inclusivo del sistema. |
-| **Decisión tomada** | El sistema incluye subtítulos en todos los diálogos de Laia como medida base de accesibilidad. La implementación de configuraciones adicionales se reconoce como deuda técnica de alta prioridad ética y se priorizará si el sistema se convierte en instalación permanente del museo. |
-
----
-
-### DT-04 — Ausencia de pruebas automatizadas
-
-| Campo | Detalle |
-|---|---|
-| **Descripción** | La validación del sistema se realiza únicamente mediante pruebas manuales y sesiones con usuarios reales. No existe una suite de pruebas automatizadas para los controladores ni para la lógica de flujo. |
-| **Impacto** | Bajo-Medio. Cambios en el código pueden introducir regresiones difíciles de detectar sin recorrer manualmente toda la experiencia. El costo de validación aumentará a medida que el sistema crezca. |
-| **Decisión tomada** | Dado el contexto académico del proyecto y los tiempos del sprint, se optó por testing manual con sesiones reales de usuario. Se documenta para incorporar pruebas unitarias de los controladores en futuras iteraciones, usando el Unity Test Framework. |
-
----
-
 ## 🚀 Instrucciones de Ejecución
 
 ### Requisitos previos
@@ -273,16 +226,9 @@ A continuación se identifican los elementos de deuda técnica presentes en el s
 
 > 📌 **Repositorio GitHub del proyecto:**
 >
-> `https://github.com/[USUARIO_O_ORG]/LiliQuest`
->
-> *(Reemplazar con el enlace real del repositorio del equipo)*
+> `https://github.com/kaki309/Lili_Quest`
 
----
 
-## 📚 Referencias
-
-- Mozilla Developer Network. (2025). *MVC*. MDN Web Docs. https://developer.mozilla.org/en-US/docs/Glossary/MVC
-- Historia Lúdica. (s.f.). *La anatomía de un joystick: La evolución del control en los videojuegos*. https://historialudica.net/historia-de-videojuegos/anatomia-joystick-evolucion-control-videojuegos/
 
 ---
 
