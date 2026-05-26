@@ -9,14 +9,14 @@ public class GestorInterfazPantallaInicio : MonoBehaviour
     [SerializeField] GameObject _textoEsperandoControles;
     [SerializeField] GameObject _textoEsperandoLectura;
     [SerializeField] Button _botonInicioExperiencia;
-    [SerializeField] GameObject _ruedaDecorativa;
+    [SerializeField] Animator _ruedaDecorativa;
     [SerializeField] AudioClip _ruedaSFX;
 
     void Awake()
     {
         Instance = this;
     }
-    public GameObject RuedaDecorativa => _ruedaDecorativa;
+    public Animator RuedaDecorativa => _ruedaDecorativa;
     public Button BotonInicioExperiencia => _botonInicioExperiencia;
     public GameObject textoEsperandoLectura => _textoEsperandoLectura;
     public GameObject textoEsperandoControles => _textoEsperandoControles;

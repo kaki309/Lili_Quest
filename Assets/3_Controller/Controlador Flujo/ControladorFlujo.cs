@@ -125,6 +125,7 @@ public class ControladorFlujo : MonoBehaviour
 
         GestorInterfazPantallaInicio.Instance.textoEsperandoControles.SetActive(false);
         GestorInterfazPantallaInicio.Instance.textoEsperandoLectura.SetActive(true);
+        GestorInterfazPantallaInicio.Instance.RuedaDecorativa.SetTrigger("girar");
         isWaitingForArduino = false;
     }
     #endregion
@@ -197,7 +198,7 @@ public class ControladorFlujo : MonoBehaviour
 
         if (!DoesCurrentExperienceModelExists()) return;
 
-        GestorInterfazPantallaInicio.Instance.RuedaDecorativa.GetComponent<Animator>().SetTrigger("girar");
+        GestorInterfazPantallaInicio.Instance.RuedaDecorativa.SetTrigger("girarRapido");
         AudioController.Instance.PlaySFX(GestorInterfazPantallaInicio.Instance.SfxRueda);
         // Desactivar texto de espera de lectura
         GestorInterfazPantallaInicio.Instance.textoEsperandoLectura.SetActive(false);

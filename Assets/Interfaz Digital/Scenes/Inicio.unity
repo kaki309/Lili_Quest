@@ -620,7 +620,7 @@ MonoBehaviour:
   _textoEsperandoControles: {fileID: 308262132}
   _textoEsperandoLectura: {fileID: 402901610}
   _botonInicioExperiencia: {fileID: 1002987840}
-  _ruedaDecorativa: {fileID: 446645414}
+  _ruedaDecorativa: {fileID: 446645418}
   _ruedaSFX: {fileID: 8300000, guid: 16e63a045ec949d4e8c96174c2ab8faa, type: 3}
 --- !u!1 &242660560
 GameObject:
