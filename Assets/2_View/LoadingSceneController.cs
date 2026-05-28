@@ -41,6 +41,9 @@ public class LoadingSceneController : MonoBehaviour
 
         asyncLoad.allowSceneActivation = false;
 
+        // Pausar música
+        AudioController.Instance.PauseMusic();
+
         // Esperamos que la escena cargue hasta su 90%
         // o que el slider no haya llegado a X valor aleatorio (Dinamismo)
         float loadProgressBeforeExecution = UnityEngine.Random.Range(0.35f, 0.65f);
@@ -77,6 +80,10 @@ public class LoadingSceneController : MonoBehaviour
             yield return null;
         }
         loadingSlider.value = 1;
+
+        // Reanudamos música
+        AudioController.Instance.ResumeMusic();
+
         // Descargamos la pantalla de carga
         SceneManager.UnloadSceneAsync((int)EscenasSistema.PantallaCarga);
     }

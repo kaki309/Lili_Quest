@@ -337,6 +337,7 @@ public class AudioController : MonoBehaviour
         sfxSource?.Pause();
         dialogueSource?.Pause();
     }
+    public void PauseMusic() => musicSource?.Pause();
 
     public void ResumeAll()
     {
@@ -344,6 +345,7 @@ public class AudioController : MonoBehaviour
         sfxSource?.UnPause();
         dialogueSource?.UnPause();
     }
+    public void ResumeMusic() => musicSource?.UnPause();
 
     public void StopAll()
     {
