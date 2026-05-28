@@ -75,75 +75,127 @@ public class ControladorNarrativa : MonoBehaviour
         UI.EncuadreFoto.SetActive(true);
         UI.ReferenciaInfo.text = "MediaTech (2026)";
 
-        // ######### Bloque 1: El Objeto y su Origen
+        // ###################################################################### ############################################################# Bloque 1
 
+        // --------------- Primera parte
         asistente.SetExpresion(ExpresionesAsistente.idle1);
-
-        // Esperar a que el audio se cargue de forma asincrónica
-        yield return controladorAudio.PlayDialogueAsync(currentExperienceData.audios["secuencia_1"], (clip) =>
+        yield return controladorAudio.PlayDialogueAsync(currentExperienceData.audios["bloque_1-audio_1"], (clip) =>
         {
             currentAudio = clip;
         });
+        UI.Foto.sprite = LoadSpriteFromPath(currentExperienceData.imagenes["bloque_1-imagen_1"]);
+        UI.Subtitulo.text = "Contempla esta pequeña figura... no es solo barro moldeado, es un eco que ha viajado por siglos, hasta llegar frente a tus ojos.";
+        yield return new WaitForSeconds(currentAudio.length);
 
-        UI.Foto.sprite = LoadSpriteFromPath(currentExperienceData.imagenes["audiovisual_1"]);
-        UI.Subtitulo.text = "Contempla esta pequeña figura... no es solo barro moldeado, es un eco que ha viajado por siglos. Este silbato en forma de perro pertenece a la cultura Quimbaya, maestros de la tierra en el corazón de Colombia. Mira la firmeza de sus patas; los antiguos artesanos capturaron la esencia de un compañero leal que parece estar esperando una orden del pasado.";
+        // --------------- Segunda parte
+        asistente.SetExpresion(ExpresionesAsistente.explicando1);
+        yield return controladorAudio.PlayDialogueAsync(currentExperienceData.audios["bloque_1-audio_2"], (clip) =>
+        {
+            currentAudio = clip;
+        });
+        UI.Foto.sprite = LoadSpriteFromPath(currentExperienceData.imagenes["bloque_1-imagen_2"]);
+        UI.Subtitulo.text = "Este silbato en forma de perro pertenece a la cultura Quimbaya, antiguos maestros de la tierra que habitaron el corazón de Colombia.";
+        yield return new WaitForSeconds(currentAudio.length);
 
-        yield return new WaitForSeconds(currentAudio.length + 2f);
+        // --------------- Tercera parte
+        asistente.SetExpresion(ExpresionesAsistente.deHecho1);
+        yield return controladorAudio.PlayDialogueAsync(currentExperienceData.audios["bloque_1-audio_3"], (clip) =>
+        {
+            currentAudio = clip;
+        });
+        UI.Foto.sprite = LoadSpriteFromPath(currentExperienceData.imagenes["bloque_1-imagen_3"]);
+        UI.Subtitulo.text = "Mira la firmeza de sus patas y la precisión de sus detalles. Los artesanos lograron capturar la esencia de un compañero leal que parece seguir esperando una orden del pasado.";
+        yield return new WaitForSeconds(currentAudio.length);
 
-        // ######### Bloque 2: La Trivia de Identidad (Interactividad)
+        // ###################################################################### ############################################################# Trivia
 
-        // Establecer texto de pregunta
+        yield return new WaitForSeconds(2f);
         UI.PreguntaTrivia.text = "¿En qué material solían fabricar los Quimbaya sus piezas más famosas, además de la cerámica?";
         respuestaCorrectaTrivia = "Tumbaga (Oro y Cobre)";
         respuestasIncorrectasTrivia.Clear();
         respuestasIncorrectasTrivia.Add("Plata pura");
         respuestasIncorrectasTrivia.Add("Hierro forjado");
         configureTriviaButtons();
-
         yield return waitForTriviaToBeCompleted();
+        yield return new WaitForSeconds(0.2f);
 
-        // ######### Bloque 3: El Uso Ritual
+        // ###################################################################### ############################################################# Bloque 2
 
-        asistente.SetExpresion(ExpresionesAsistente.explicando1);
-
-        // Esperar a que el audio se cargue de forma asincrónica
-        yield return controladorAudio.PlayDialogueAsync(currentExperienceData.audios["secuencia_2"], (clip) =>
+        // --------------- Primera parte
+        asistente.SetExpresion(ExpresionesAsistente.pensando1);
+        yield return controladorAudio.PlayDialogueAsync(currentExperienceData.audios["bloque_2-audio_1"], (clip) =>
         {
             currentAudio = clip;
         });
+        UI.Foto.sprite = LoadSpriteFromPath(currentExperienceData.imagenes["bloque_2-imagen_1"]);
+        UI.Subtitulo.text = "Pero su propósito iba mucho más allá de lo visual. Este silbato era una herramienta de conexión entre antiguos pobladores.";
+        yield return new WaitForSeconds(currentAudio.length);
 
-        UI.Foto.sprite = LoadSpriteFromPath(currentExperienceData.imagenes["audiovisual_2"]);
-        UI.Subtitulo.text = "Pero su propósito iba más allá de lo visual. Este silbato servía para la comunicación entre antiguos pobladores, pero no era una charla cualquiera. Su sonido agudo cortaba la espesura de la selva y el vaho de las montañas, conectando aldeas o, quizás, guiando las almas en su viaje final. Lo que escuchas es la voz de una civilización que se negaba a estar aislada.";
+        // --------------- Segunda parte
+        asistente.SetExpresion(ExpresionesAsistente.idle2);
+        yield return controladorAudio.PlayDialogueAsync(currentExperienceData.audios["bloque_2-audio_2"], (clip) =>
+        {
+            currentAudio = clip;
+        });
+        UI.Foto.sprite = LoadSpriteFromPath(currentExperienceData.imagenes["bloque_2-imagen_2"]);
+        UI.Subtitulo.text = "Su sonido agudo atravesaba la espesura de la selva y el vaho de las montañas, llevando mensajes entre aldeas separadas por grandes distancias.";
+        yield return new WaitForSeconds(currentAudio.length);
 
-        yield return new WaitForSeconds(currentAudio.length + 2f);
+        // --------------- Tercera parte
+        asistente.SetExpresion(ExpresionesAsistente.amable2);
+        yield return controladorAudio.PlayDialogueAsync(currentExperienceData.audios["bloque_2-audio_3"], (clip) =>
+        {
+            currentAudio = clip;
+        });
+        UI.Foto.sprite = LoadSpriteFromPath(currentExperienceData.imagenes["bloque_2-imagen_3"]);
+        UI.Subtitulo.text = "Tal vez también guiaba rituales o acompañaba el viaje espiritual de quienes partían. Lo que escuchas hoy es la voz persistente de una civilización que se negaba a quedar en silencio.";
+        yield return new WaitForSeconds(currentAudio.length);
 
-        // ######### Bloque 4: La Trivia de Función
+        // ###################################################################### ############################################################# Trivia
 
+        yield return new WaitForSeconds(2f);
         UI.PreguntaTrivia.text = "¿Cuál era una de las funciones principales de este silbato según los arqueólogos?";
         respuestaCorrectaTrivia = "Guía espiritual y comunicación";
         respuestasIncorrectasTrivia.Clear();
         respuestasIncorrectasTrivia.Add("Juguete para niños");
         respuestasIncorrectasTrivia.Add("Moneda de cambio");
         configureTriviaButtons();
-
         yield return waitForTriviaToBeCompleted();
+        yield return new WaitForSeconds(0.2f);
 
-        // ######### Bloque 5: El Hallazgo y el 'Ombligo'
+        // ###################################################################### ############################################################# Bloque 3
 
-        asistente.SetExpresion(ExpresionesAsistente.amable1);
-
-        // Esperar a que el audio se cargue de forma asincrónica
-        yield return controladorAudio.PlayDialogueAsync(currentExperienceData.audios["secuencia_3"], (clip) =>
+        // --------------- Primera parte
+        asistente.SetExpresion(ExpresionesAsistente.explicando2);
+        yield return controladorAudio.PlayDialogueAsync(currentExperienceData.audios["bloque_3-audio_1"], (clip) =>
         {
             currentAudio = clip;
         });
+        UI.Foto.sprite = LoadSpriteFromPath(currentExperienceData.imagenes["bloque_3-imagen_1"]);
+        UI.Subtitulo.text = "Su regreso a la luz ocurrió casi como un acto del destino. La pieza fue encontrada durante la construcción del campus universitario.";
+        yield return new WaitForSeconds(currentAudio.length);
 
-        UI.Foto.sprite = LoadSpriteFromPath(currentExperienceData.imagenes["audiovisual_3"]);
-        UI.Subtitulo.text = "Su regreso a la luz fue casi un acto del destino. Fue hallado durante la construcción del campus, emergiendo de las raíces para recordarnos quiénes pisaron este suelo antes que nosotros. Por eso, hoy, el museo lo llama 'nuestro ombligo'. Es el punto de unión que nos amarra a nuestra identidad y nos recuerda que, bajo las aulas, late un corazón indígena que aún tiene mucho por decir.";
+        // --------------- Segunda parte
+        asistente.SetExpresion(ExpresionesAsistente.amable2);
+        yield return controladorAudio.PlayDialogueAsync(currentExperienceData.audios["bloque_3-audio_2"], (clip) =>
+        {
+            currentAudio = clip;
+        });
+        UI.Foto.sprite = LoadSpriteFromPath(currentExperienceData.imagenes["bloque_3-imagen_2"]);
+        UI.Subtitulo.text = "Emergió desde las raíces de la tierra para recordarnos quiénes caminaron este suelo mucho antes que nosotros.";
+        yield return new WaitForSeconds(currentAudio.length);
 
-        yield return new WaitForSeconds(currentAudio.length + 2f);
+        // --------------- Tercera parte
+        asistente.SetExpresion(ExpresionesAsistente.idle2);
+        yield return controladorAudio.PlayDialogueAsync(currentExperienceData.audios["bloque_3-audio_3"], (clip) =>
+        {
+            currentAudio = clip;
+        });
+        UI.Foto.sprite = LoadSpriteFromPath(currentExperienceData.imagenes["bloque_3-imagen_3"]);
+        UI.Subtitulo.text = "Por eso el museo lo llama ‘nuestro ombligo’. Porque representa el punto de unión con nuestra identidad y nos recuerda que, bajo las aulas, aún late un corazón indígena lleno de memoria.";
+        yield return new WaitForSeconds(currentAudio.length);
 
-        // ######### Bloque 6: Trivia Final de Cierre
+        // ###################################################################### ############################################################# Bloque 5
 
         UI.PreguntaTrivia.text = "¿Por qué el museo apoda a esta pieza como 'nuestro ombligo'?";
         respuestaCorrectaTrivia = "Porque es el punto de conexión con nuestra identidad";
@@ -151,9 +203,8 @@ public class ControladorNarrativa : MonoBehaviour
         respuestasIncorrectasTrivia.Add("Por su forma redonda");
         respuestasIncorrectasTrivia.Add("Porque fue encontrado en el centro de una plaza");
         configureTriviaButtons();
-
         yield return waitForTriviaToBeCompleted();
-
+        yield return new WaitForSeconds(0.5f);
         finishSecuence();
     }
     public void answerTriviaCorrectly()

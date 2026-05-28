@@ -3,14 +3,26 @@
     "modelo": "SilbatoPerroQuimbayaModelo.glb",
     "secuencia": "archivoSecuencia.txt",
     "imagenes": [
-      {"key": "audiovisual_1", "value": "imagenes/audiovisual_1.png"},
-      {"key": "audiovisual_2", "value": "imagenes/audiovisual_2.png"},
-      {"key": "audiovisual_3", "value": "imagenes/audiovisual_3.png"}
+      { "key": "bloque_1-imagen_1", "value": "imagenes/bloque_1-imagen_1.png" },
+      { "key": "bloque_1-imagen_2", "value": "imagenes/bloque_1-imagen_2.png" },
+      { "key": "bloque_1-imagen_3", "value": "imagenes/bloque_1-imagen_3.png" },
+      { "key": "bloque_2-imagen_1", "value": "imagenes/bloque_2-imagen_1.png" },
+      { "key": "bloque_2-imagen_2", "value": "imagenes/bloque_2-imagen_2.png" },
+      { "key": "bloque_2-imagen_3", "value": "imagenes/bloque_2-imagen_3.png" },
+      { "key": "bloque_3-imagen_1", "value": "imagenes/bloque_3-imagen_1.png" },
+      { "key": "bloque_3-imagen_2", "value": "imagenes/bloque_3-imagen_2.png" },
+      { "key": "bloque_3-imagen_3", "value": "imagenes/bloque_3-imagen_3.png" }
     ],
     "audios": [
-      {"key": "secuencia_1", "value": "audios/secuencia_1.wav"},
-      {"key": "secuencia_2", "value": "audios/secuencia_2.wav"},
-      {"key": "secuencia_3", "value": "audios/secuencia_3.wav"}
+      { "key": "bloque_1-audio_1", "value": "audios/bloque_1-audio_1.wav" },
+      { "key": "bloque_1-audio_2", "value": "audios/bloque_1-audio_2.wav" },
+      { "key": "bloque_1-audio_3", "value": "audios/bloque_1-audio_3.wav" },
+      { "key": "bloque_2-audio_1", "value": "audios/bloque_2-audio_1.wav" },
+      { "key": "bloque_2-audio_2", "value": "audios/bloque_2-audio_2.wav" },
+      { "key": "bloque_2-audio_3", "value": "audios/bloque_2-audio_3.wav" },
+      { "key": "bloque_3-audio_1", "value": "audios/bloque_3-audio_1.wav" },
+      { "key": "bloque_3-audio_2", "value": "audios/bloque_3-audio_2.wav" },
+      { "key": "bloque_3-audio_3", "value": "audios/bloque_3-audio_3.wav" }
     ]
   }
 }
