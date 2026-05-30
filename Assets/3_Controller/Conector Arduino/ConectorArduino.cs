@@ -13,9 +13,10 @@ using TMPro;
 /// </summary>
 public enum ArduinoState
 {
-    Inicializando = 0,    // Buscando puerto y estableciendo conexión
-    EsperandoRFID = 1,    // Esperando lectura de RFID para iniciar interacción
-    LeyendoDatos = 2      // Leyendo datos de sensores (joystick, pot, botón)
+    Inicializando = 0, // Buscando puerto y estableciendo conexión
+    LeyendoRFID = 1, // Para enviar mensaje de reinicio de experiencia a arduino
+    LeyendoDatos = 2, // Enviando datos
+
 }
 
 /// <summary>
@@ -99,6 +100,7 @@ public class ConectorArduino : MonoBehaviour
     // ---- DATOS ----
     private SensorData sensorData = new SensorData();
     public SensorData GetSensorData() => sensorData;
+    public static Action onButtonClicked;
 
     // ---- PUERTO SERIAL ----
     private SerialPort serial;
@@ -106,10 +108,12 @@ public class ConectorArduino : MonoBehaviour
     public bool isSearching { get; private set; } = false;
 
     // ---- MENSAJES DE PROTOCOLO (Arduino esperando estos literales) ----
-    private const string IDENTIFICATION_MSG = "soy controles lili quest";      // Arduino envía al inicializar
-    private const string RESPONSE_MSG = "te encontre";             // Respuesta que se envía al arduino
-    private const string RESET_CONNECTION_MSG = "reset"; // Comando para reiniciar conexión completa
-    private const string START_SENDING_DATA_MSG = "enviar datos de control"; // Comando para solicitar envío de datos de interacción
+    private const string IDENTIFICATION_MSG = "soy controles lili quest"; // Mensaje proveniente del arduino
+    private const string RESPONSE_MSG = "te encontre"; // Se le responde al arduino para establecer la conexión
+    private const string RESET_CONNECTION_MSG = "reset"; // Comando para reiniciar a lectura de RFID
+
+    // Variables internas
+    bool hasClickedOnce;
 
     private void Awake()
     {
@@ -125,6 +129,7 @@ public class ConectorArduino : MonoBehaviour
     private void Start()
     {
         currentState = ArduinoState.Inicializando;
+        hasClickedOnce = false;
 
         if (debugCanvas != null)
         {
@@ -132,6 +137,23 @@ public class ConectorArduino : MonoBehaviour
         }
 
         StartCoroutine(ConnectionLoop());
+    }
+
+    void Update()
+    {
+        // Si no está oprimiendo el botón pero ya está un click registrado, reiniciarlo
+        if (!sensorData.ButtonPressed && hasClickedOnce)
+        {
+            hasClickedOnce = false;
+        }
+        // Si está oprimiendo el botón y no hay un click registrado
+        if (sensorData.ButtonPressed && !hasClickedOnce)
+        {
+            // Registrar click
+            hasClickedOnce = true;
+            // Ejecutar click
+            onButtonClicked?.Invoke();
+        }
     }
 
     private void OnApplicationQuit()
@@ -234,7 +256,7 @@ public class ConectorArduino : MonoBehaviour
                             testPort.BaseStream.Flush();
 
                             serial = testPort;
-                            currentState = ArduinoState.EsperandoRFID; // Estado inicial después de conexión
+                            currentState = ArduinoState.LeyendoDatos; // Estado inicial después de conexión
                             StartCoroutine(ReadDataLoop());
                             break;
                         }
@@ -327,19 +349,10 @@ public class ConectorArduino : MonoBehaviour
     // ============================================================
 
     /// <summary>
-    /// Solicita un cambio de estado en Arduino.
-    /// Envía los comandos correspondientes según el nuevo estado deseado.
-    /// 
-    /// Ejemplo de uso desde otros controladores:
-    ///   ConectorArduino.Instance.RequestState(ArduinoState.EsperandoRFID);
+    /// Solicitar reinicio de lectura de RFID al arduino
     /// </summary>
-    public void RequestState(ArduinoState newState)
+    public void RequestReset()
     {
-        if (newState == currentState)
-        {
-            Debug.LogWarning($"[ConectorArduino] Ya en estado {currentState}");
-            return;
-        }
 
         if (!IsConnected)
         {
@@ -347,26 +360,7 @@ public class ConectorArduino : MonoBehaviour
             return;
         }
 
-        currentState = newState;
-        Debug.Log($"[ConectorArduino] Cambiando a estado: {currentState}");
-
-        // Enviar comando a Arduino según el nuevo estado
-        switch (newState)
-        {
-            case ArduinoState.EsperandoRFID:
-                // Volver al inicio: Arduino a modo espera con RFID
-                SendCommandToArduino(RESET_CONNECTION_MSG);
-                break;
-
-            case ArduinoState.LeyendoDatos:
-                // Cambiar a lectura de sensores
-                SendCommandToArduino(START_SENDING_DATA_MSG);
-                break;
-
-            case ArduinoState.Inicializando:
-                Debug.LogWarning("[ConectorArduino] No se puede solicitar Inicializando manualmente");
-                break;
-        }
+        SendCommandToArduino(RESET_CONNECTION_MSG);
     }
 
     // ============================================================

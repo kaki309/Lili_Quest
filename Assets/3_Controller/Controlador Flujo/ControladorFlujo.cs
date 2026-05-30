@@ -37,7 +37,6 @@ public class ControladorFlujo : MonoBehaviour
 
     // ---- VARIABLES INTERNAS ----
     string lastRFIDRead = "";  // Para detectar cambios en RFID
-    bool lastButtonStateVisor3D = false;  // Para detectar transiciones del botón en Visor3D
     ParsedExperienceData currentExperienceData;
     SensorData interactionData;
     bool isInitializingState = false;
@@ -104,9 +103,6 @@ public class ControladorFlujo : MonoBehaviour
                 UpdateEsperandoID();
                 break;
 
-            case ControllerState.EsperandoInicioExperiencia:
-                UpdateEsperandoInicioExperiencia();
-                break;
             case ControllerState.Visor3D:
                 UpdateVisor3D();
                 break;
@@ -173,10 +169,6 @@ public class ControladorFlujo : MonoBehaviour
         ExitEsperandoID();
         currentState = ControllerState.EsperandoInicioExperiencia;
 
-        // Solicitar a Arduino que cambie a modo LeyendoDatos
-        ConectorArduino.Instance.RequestState(ArduinoState.LeyendoDatos);
-        Debug.Log("[ControladorFlujo] Solicitado a Arduino: LeyendoDatos");
-
         currentExperienceData = ControladorDatos.Instance.GetExperienceData(lastRFIDRead);
         InitializeEsperandoInicioExperiencia();
     }
@@ -196,8 +188,6 @@ public class ControladorFlujo : MonoBehaviour
         isInitializingState = true;
         Debug.Log("[ControladorFlujo] Inicializando estado: EsperandoInicioExperiencia");
 
-        if (!DoesCurrentExperienceModelExists()) return;
-
         GestorInterfazPantallaInicio.Instance.RuedaDecorativa.SetTrigger("girarRapido");
         AudioController.Instance.PlaySFX(GestorInterfazPantallaInicio.Instance.SfxRueda);
         // Desactivar texto de espera de lectura
@@ -205,23 +195,19 @@ public class ControladorFlujo : MonoBehaviour
         // Activar botón para iniciar la experiencia
         GestorInterfazPantallaInicio.Instance.BotonInicioExperiencia.gameObject.SetActive(true);
 
+        GestorInterfazPantallaInicio.Instance.BotonInicioExperiencia.onClick.AddListener(TransitionToInteraccionRuptura);
+
         EventSystem.current.SetSelectedGameObject(GestorInterfazPantallaInicio.Instance.BotonInicioExperiencia.gameObject);
+
+        ConectorArduino.onButtonClicked += performClickOnCurrentSelected;
 
         isInitializingState = false;
     }
-    void UpdateEsperandoInicioExperiencia()
-    {
-        if (interactionData.ButtonPressed || Input.GetKey(KeyCode.Return))
-        {
-            Debug.Log("[ControladorFlujo] Botón presionado detectado (transición). Iniciando experiencia...");
-            GestorInterfazPantallaInicio.Instance.BotonInicioExperiencia.onClick.RemoveAllListeners();
-            GestorInterfazPantallaInicio.Instance.BotonInicioExperiencia.onClick.Invoke();
-            TransitionToInteraccionRuptura();
-        }
-    }
+
     void TransitionToInteraccionRuptura()
     {
         isSwitchingState = true;
+        ConectorArduino.onButtonClicked -= performClickOnCurrentSelected;
         ExitEsperandoInicioExperiencia();
         currentState = ControllerState.InteraccionRuptura;
         Debug.Log("[ControladorFlujo] Transición a: InteraccionRuptura");
@@ -229,6 +215,7 @@ public class ControladorFlujo : MonoBehaviour
         {
             StartCoroutine(InitializeInteraccionRuptura(onDone));
         });
+        isSwitchingState = false;
     }
     void ExitEsperandoInicioExperiencia()
     {
@@ -242,7 +229,6 @@ public class ControladorFlujo : MonoBehaviour
     #region ESTADO: INTERACCIÓN Y RUPTURA
     IEnumerator InitializeInteraccionRuptura(Action onDone)
     {
-        isSwitchingState = false;
         isInitializingState = true;
         Debug.Log("[ControladorFlujo] Inicializando estado: InteraccionRuptura");
 
@@ -366,9 +352,6 @@ public class ControladorFlujo : MonoBehaviour
         // Esperamos que el gestor de interfaz esté creado en escena
         yield return waitForObjectToBeOnScene<GestorInterfazPantallasVisor3D>();
 
-        // Resetear estado del botón para evitar transiciones falsas
-        lastButtonStateVisor3D = false;
-
         // Desactivamos movimiento de cámara y fractura
         MovimientoCamara movimientoCamara = Camera.main.GetComponent<MovimientoCamara>();
         movimientoCamara.enabled = false;
@@ -407,40 +390,39 @@ public class ControladorFlujo : MonoBehaviour
         // Activamos movimiento de cámara nuevamente
         movimientoCamara.enabled = true;
 
+        // Agregamos click al conector para mostrar menu de pausa
+        ConectorArduino.onButtonClicked += ShowPauseMenu;
+
         // Salimos de la inicialización
         isInitializingState = false;
         yield break;
     }
     void UpdateVisor3D()
     {
-        bool currentButtonState = interactionData.ButtonPressed;
-
-        // Edge detection: solo ejecutar cuando detectamos la transición de no presionado a presionado
-        if (currentButtonState && !lastButtonStateVisor3D)
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
-            Debug.Log("[ControladorFlujo] Botón presionado detectado en Visor3D. Mostrando menú de pausa...");
             ShowPauseMenu();
         }
-
-        // Guardar estado actual para la próxima iteración
-        lastButtonStateVisor3D = currentButtonState;
     }
     private void ExitVisor3D()
     {
         Debug.Log("[ControladorFlujo] Saliendo del estado: Visor3D");
 
+        // Quitamos click al conector para mostrar menu de pausa
+        ConectorArduino.onButtonClicked -= ShowPauseMenu;
+
         // Limpiar listeners de botones para evitar ejecuciones fantasma
         GestorInterfazPantallasVisor3D.Instance.BotonCancelar.onClick.RemoveAllListeners();
         GestorInterfazPantallasVisor3D.Instance.BotonReiniciar.onClick.RemoveAllListeners();
-
-        lastButtonStateVisor3D = false;  // Resetear estado del botón
     }
 
     /// <summary>
     /// Muestra el Canvas de menú de pausa en Visor3D
     /// </summary>
-    private void ShowPauseMenu()
+    void ShowPauseMenu()
     {
+        // Quitamos click al conector para evitar ejecuciones dobles
+        ConectorArduino.onButtonClicked -= ShowPauseMenu;
         MovimientoCamara movimientoCamara = Camera.main.GetComponent<MovimientoCamara>();
         movimientoCamara.enabled = false;
         GestorInterfazPantallasVisor3D.Instance.PanelSalir.SetActive(true);
@@ -450,8 +432,10 @@ public class ControladorFlujo : MonoBehaviour
     /// <summary>
     /// Cierra el Canvas de menú de pausa en Visor3D (Botón: Mantener en pantalla)
     /// </summary>
-    public void ClosePauseMenu()
+    void ClosePauseMenu()
     {
+        // Agregamos click al conector para mostrar menu de pausa nuevamente
+        ConectorArduino.onButtonClicked += ShowPauseMenu;
         MovimientoCamara movimientoCamara = Camera.main.GetComponent<MovimientoCamara>();
         movimientoCamara.enabled = true;
         GestorInterfazPantallasVisor3D.Instance.PanelSalir.SetActive(false);
@@ -544,8 +528,8 @@ public class ControladorFlujo : MonoBehaviour
         Debug.Log("[ControladorFlujo] Reiniciando sistema");
 
         // Reiniciar Arduino a lectura de RFID
-        ConectorArduino.Instance.RequestState(ArduinoState.EsperandoRFID);
-        Debug.Log("[ControladorFlujo] Solicitado a Arduino: EsperandoRFID (Reset)");
+        ConectorArduino.Instance.RequestReset();
+        Debug.Log("[ControladorFlujo] Solicitado a Arduino: Reset");
 
         if (LanzadorEscenas.Instance != null)
         {
@@ -554,6 +538,10 @@ public class ControladorFlujo : MonoBehaviour
 
         // Cambiar al estado inicial
         InitializeEsperandoID();
+    }
+    void performClickOnCurrentSelected()
+    {
+        EventSystem.current.currentSelectedGameObject.GetComponent<Button>().onClick.Invoke();
     }
 
     #endregion

@@ -23,6 +23,16 @@ public class MenuNavigation : MonoBehaviour
     void OnEnable()
     {
         EventSystem.current.SetSelectedGameObject(firstButton.gameObject);
+        ConectorArduino.onButtonClicked += performClickOnCurrentSelected;
+    }
+    void OnDisable()
+    {
+        ConectorArduino.onButtonClicked -= performClickOnCurrentSelected;
+    }
+
+    void performClickOnCurrentSelected()
+    {
+        EventSystem.current.currentSelectedGameObject.GetComponent<Button>().onClick.Invoke();
     }
 
     void Update()
